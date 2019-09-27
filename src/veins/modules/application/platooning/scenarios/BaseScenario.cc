@@ -27,7 +27,9 @@ void BaseScenario::initialize(int stage)
     BaseApplLayer::initialize(stage);
 
     if (stage == 0) {
-        accHeadway = par("accHeadway").doubleValue();
+        spacing = par("spacing").doubleValue();
+        headway = par("headway").doubleValue();
+
         leaderHeadway = par("leaderHeadway").doubleValue();
         caccXi = par("caccXi").doubleValue();
         caccOmegaN = par("caccOmegaN").doubleValue();
@@ -35,15 +37,14 @@ void BaseScenario::initialize(int stage)
         engineTau = par("engineTau").doubleValue();
         uMin = par("uMin").doubleValue();
         uMax = par("uMax").doubleValue();
-        ploegH = par("ploegH").doubleValue();
         ploegKp = par("ploegKp").doubleValue();
         ploegKd = par("ploegKd").doubleValue();
         flatbedKa = par("flatbedKa").doubleValue();
         flatbedKv = par("flatbedKv").doubleValue();
         flatbedKp = par("flatbedKp").doubleValue();
         flatbedH = par("flatbedH").doubleValue();
-        flatbedD = par("flatbedD").doubleValue();
         useControllerAcceleration = par("useControllerAcceleration").boolValue();
+        useRadarPredSpeed = par("useRadarPredSpeed").boolValue();
         usePrediction = par("usePrediction").boolValue();
 
         useRealisticEngine = par("useRealisticEngine").boolValue();
@@ -91,7 +92,7 @@ void BaseScenario::initialize(int stage)
         }
         else {
             traciVehicle->setActiveController(controller);
-            traciVehicle->setACCHeadwayTime(accHeadway);
+            traciVehicle->setACCHeadwayTime(headway);
         }
         // set the current lane
         traciVehicle->setFixedLane(positionHelper->getPlatoonLane());
@@ -108,6 +109,13 @@ void BaseScenario::handleSelfMsg(cMessage* msg)
 
 void BaseScenario::initializeControllers()
 {
+    // spacing and headway
+    traciVehicle->setParameter(PAR_CACC_SPACING, spacing);
+    traciVehicle->setParameter(CC_PAR_PLOEG_H, headway);
+    traciVehicle->setParameter(CC_PAR_FLATBED_D, spacing);
+    traciVehicle->setParameter(CC_PAR_CONSENSUS_S, spacing);
+    traciVehicle->setParameter(CC_PAR_CONSENSUS_H, headway);
+
     // engine lag
     traciVehicle->setParameter(CC_PAR_ENGINE_TAU, engineTau);
     traciVehicle->setParameter(CC_PAR_UMIN, uMin);
@@ -117,7 +125,6 @@ void BaseScenario::initializeControllers()
     traciVehicle->setParameter(CC_PAR_CACC_OMEGA_N, caccOmegaN);
     traciVehicle->setParameter(CC_PAR_CACC_XI, caccXi);
     // Ploeg's parameters
-    traciVehicle->setParameter(CC_PAR_PLOEG_H, ploegH);
     traciVehicle->setParameter(CC_PAR_PLOEG_KP, ploegKp);
     traciVehicle->setParameter(CC_PAR_PLOEG_KD, ploegKd);
     // flatbed's parameters
@@ -125,12 +132,13 @@ void BaseScenario::initializeControllers()
     traciVehicle->setParameter(CC_PAR_FLATBED_KV, flatbedKv);
     traciVehicle->setParameter(CC_PAR_FLATBED_KP, flatbedKp);
     traciVehicle->setParameter(CC_PAR_FLATBED_H, flatbedH);
-    traciVehicle->setParameter(CC_PAR_FLATBED_D, flatbedD);
     // consensus parameters
     traciVehicle->setParameter(CC_PAR_VEHICLE_POSITION, positionHelper->getPosition());
     traciVehicle->setParameter(CC_PAR_PLATOON_SIZE, positionHelper->getPlatoonSize());
     // use of controller acceleration
     traciVehicle->useControllerAcceleration(useControllerAcceleration);
+    // use the predecessor speed obtained from the radar
+    traciVehicle->useRadarPredSpeed(useRadarPredSpeed);
 
     Plexe::VEHICLE_DATA vehicleData;
     // initialize own vehicle data

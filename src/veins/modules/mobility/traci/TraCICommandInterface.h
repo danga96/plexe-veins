@@ -288,6 +288,13 @@ public:
         void useControllerAcceleration(bool use);
 
         /**
+         * Determines whether the CACC controllers should use the predecessor speed measured
+         * by the radar or the one obtained through V2V communication
+         * @param use if set to true, the vehicle will use the value obtained from the radar
+         */
+        void useRadarPredSpeed(bool use);
+
+        /**
          * If the vehicle is using the realistic engine model, this method
          * returns the current gear and the engine RPM
          * @param gear the current gear. if the realistic engine model is

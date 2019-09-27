@@ -25,11 +25,16 @@ moduleinterface BaseScenario extends IBaseApplLayer
 
         //controller used by followers
         string controller;
+
         //list of various controller parameters
-        //headway time to be used for the ACC
-        double accHeadway @unit("s");
+        // controller spacing (when applicable)
+        double spacing @unit("m");
+        // controller headway time (when applicable)
+        double headway @unit("s");
+
         //headway time for leaders using ACC
         double leaderHeadway @unit("s");
+
         //cacc and engine related parameters
         double caccXi;
         double caccOmegaN @unit("Hz");
@@ -37,18 +42,19 @@ moduleinterface BaseScenario extends IBaseApplLayer
         double engineTau @unit("s");
         double uMin @unit("mpsps");
         double uMax @unit("mpsps");
-        double ploegH @unit("s");
         double ploegKp;
         double ploegKd;
         double flatbedKa;
         double flatbedKv;
         double flatbedKp;
         double flatbedH;
-        double flatbedD;
         //use the real or the controller acceleration for computing the acceleration
         bool useControllerAcceleration;
         //use prediction for computing missing data between successive beacons
         bool usePrediction;
+        // whether CACC controllers use the predecessor speed measured by the radar or
+        // the one obtained through V2V communication
+        bool useRadarPredSpeed;
 
         //location of the file with vehicle parameters
         string vehicleFile;
@@ -59,5 +65,4 @@ moduleinterface BaseScenario extends IBaseApplLayer
 
         @display("i=block/app2");
         @class(BaseScenario);
-
 }

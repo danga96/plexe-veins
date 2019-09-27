@@ -1366,6 +1366,11 @@ void TraCICommandInterface::Vehicle::useControllerAcceleration(bool use)
     setParameter(PAR_USE_CONTROLLER_ACCELERATION, use ? 1 : 0);
 }
 
+void TraCICommandInterface::Vehicle::useRadarPredSpeed(bool use)
+{
+    setParameter(PAR_USE_RADAR_PRED_SPEED, use ? 1 : 0);
+}
+
 void TraCICommandInterface::Vehicle::getEngineData(int& gear, double& rpm)
 {
     ParBuffer inBuf;

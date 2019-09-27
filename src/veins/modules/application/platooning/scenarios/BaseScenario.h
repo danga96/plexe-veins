@@ -31,6 +31,15 @@ class BaseScenario : public Veins::BaseApplLayer {
 public:
     virtual void initialize(int stage);
 
+    double getSpacing() const
+    {
+        return spacing;
+    }
+    double getHeadway() const
+    {
+        return headway;
+    }
+
 protected:
     // traci interfaces
     Veins::TraCIMobility* mobility;
@@ -44,8 +53,11 @@ protected:
     enum Plexe::ACTIVE_CONTROLLER controller;
 
     // list of various controller parameters
-    // headway time to be used for the ACC
-    double accHeadway;
+    // controller spacing (when applicable)
+    double spacing;
+    // controller headway time (when applicable)
+    double headway;
+
     // headway time for ACC of leaders
     double leaderHeadway;
     // cacc and engine related parameters
@@ -54,15 +66,14 @@ protected:
     double caccC1;
     double engineTau;
     double uMin, uMax;
-    double ploegH;
     double ploegKp;
     double ploegKd;
     double flatbedKa;
     double flatbedKv;
     double flatbedKp;
     double flatbedH;
-    double flatbedD;
     bool useControllerAcceleration;
+    bool useRadarPredSpeed;
     bool usePrediction;
 
     // location of the file with vehicle parameters

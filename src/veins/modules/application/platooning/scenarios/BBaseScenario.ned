@@ -29,11 +29,16 @@ simple BBaseScenario like BaseScenario
         //base scenario inherited parameters
         //controller used by followers
         string controller;
+
         //list of various controller parameters
-        //headway time to be used for the ACC
-        double accHeadway @unit("s") = default(1.2s);
+        // controller spacing (when applicable)
+        double spacing @unit("m") = default(0m);
+        // controller headway time (when applicable)
+        double headway @unit("s") = default(0s);
+
         //headway time for leaders using ACC
         double leaderHeadway @unit("s") = default(1.2s);
+
         //cacc and engine related parameters
         double caccXi = default(1);
         double caccOmegaN @unit("Hz") = default(0.2Hz);
@@ -41,16 +46,15 @@ simple BBaseScenario like BaseScenario
         double engineTau @unit("s") = default(0.5s);
         double uMin @unit("mpsps") = default(-1e6 mpsps);
         double uMax @unit("mpsps") = default(1e6 mpsps);
-        double ploegH @unit("s") = default(0.5s);
         double ploegKp = default(0.2);
         double ploegKd = default(0.7);
         double flatbedKa = default(2.4);
         double flatbedKv = default(0.6);
         double flatbedKp = default(12);
         double flatbedH = default(4);
-        double flatbedD = default(5);
         bool useControllerAcceleration = default(true);
         bool usePrediction = default(true);
+        bool useRadarPredSpeed = default(false);
 
         //location of the file with vehicle parameters
         string vehicleFile = default("./vehicles.xml");
@@ -66,5 +70,4 @@ simple BBaseScenario like BaseScenario
         output lowerLayerOut; // to network layer
         input lowerControlIn; // control from network layer
         output lowerControlOut; // control to network layer
-
 }

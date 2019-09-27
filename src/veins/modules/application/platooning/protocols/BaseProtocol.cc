@@ -153,7 +153,7 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress)
     // vehicle's data to be included in the message
     Plexe::VEHICLE_DATA data;
     // get information about the vehicle via traci
-    traciVehicle->getVehicleData(&data);
+    traciVehicle->getVehicleData(&data, true /* values obtained from realistic sensors */);
 
     // create and send beacon
     UnicastMessage* unicast = new UnicastMessage("", BEACON_TYPE);

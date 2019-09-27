@@ -135,13 +135,13 @@ public:
          * before sending the data to the followers
          * This method is deprecated. getVehicleData with a struct parameter should be used instead
          */
-        void getVehicleData(double& speed, double& acceleration, double& controllerAcceleration, double& positionX, double& positionY, double& time);
+        void getVehicleData(double& speed, double& acceleration, double& controllerAcceleration, double& positionX, double& positionY, double& time, bool realisticSensors);
 
         /**
          * Gets the data about a vehicle. This can be used by a platoon leader in order to query for the acceleration
          * before sending the data to the followers
          */
-        void getVehicleData(Plexe::VEHICLE_DATA* data);
+        void getVehicleData(Plexe::VEHICLE_DATA* data, bool realisticSensors);
 
         /**
          * Set the cruise control desired speed
@@ -242,7 +242,8 @@ public:
          * method returns a distance value greater than 250m, it shall be
          * interpreted like "there is nobody in front"
          */
-        void getRadarMeasurements(double& distance, double& relativeSpeed);
+        void getRadarMeasurements(Plexe::RADAR_READING* data, bool realisticSensors);
+        void getRadarMeasurements(double& distance, double& relativeSpeed, double& samplingTime, bool realisticSensors);
 
         void setLeaderVehicleFakeData(double controllerAcceleration, double acceleration, double speed);
         void setLeaderFakeData(double leaderSpeed, double leaderAcceleration);
@@ -278,7 +279,7 @@ public:
         /**
          * Gets data information about a vehicle in the same platoon, as stored by this car
          */
-        void getStoredVehicleData(struct Plexe::VEHICLE_DATA* data, int index);
+        void getStoredVehicleData(struct Plexe::VEHICLE_DATA* data, int index, bool realisticSensors);
 
         /**
          * Determines whether PATH's and PLOEG's CACCs should use the controller
@@ -321,6 +322,26 @@ public:
          * @param enable: enable or disable prediction
          */
         void usePrediction(bool enable);
+
+        /**
+         * Specifies the range parameters for the given sensor.
+         * @param sensorType: the type identifying the sensor
+         * @param minValue: the minimum value that can be measured by the sensor
+         * @param maxValue: the maximum value that can be measured by the sensor
+         * @param decimalDigits: the number of decimal digits of the measurement provided by the sensor
+         * @param updateInterval: the amount of time elapsed between two measurements
+         */
+        void setSensorParametersRange(Plexe::VEHICLE_SENSORS sensorType, double minValue, double maxValue, int decimalDigits, double updateInterval);
+
+        /**
+         * Specifies the uncertainty parameters for the given sensor.
+         * @param sensorType: the type identifying the sensor
+         * @param absoluteError: the absolute error associated to the sensor
+         * @param percentageError: the relative error associated to the sensor (in percentage)
+         * @param sumErrors: whether absolute and relative errors are summed or only the highest one is applied
+         * @param seed: the seed used to initialize the random generator
+         */
+        void setSensorParametersErrors(Plexe::VEHICLE_SENSORS sensorType, double absoluteError, double percentageError, bool sumErrors, int seed);
 
         /**
          * Adds a platoon member to this vehicle, usually considered to be the

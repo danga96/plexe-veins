@@ -96,10 +96,10 @@ void BaseApp::handleLowerMsg(cMessage* msg)
 void BaseApp::logVehicleData(bool crashed)
 {
     // get distance and relative speed w.r.t. front vehicle
-    double distance, relSpeed;
+    double distance, relSpeed, samplingTime;
     Plexe::VEHICLE_DATA data;
-    traciVehicle->getRadarMeasurements(distance, relSpeed);
-    traciVehicle->getVehicleData(&data);
+    traciVehicle->getRadarMeasurements(distance, relSpeed, samplingTime, false /* log the real values */);
+    traciVehicle->getVehicleData(&data, false /* log the real values */);
     if (crashed) {
         distance = 0;
         stopSimulation = new cMessage("stopSimulation");

@@ -1080,18 +1080,18 @@ std::list<Coord> TraCICommandInterface::genericGetCoordList(uint8_t commandId, s
     return res;
 }
 
-void TraCICommandInterface::Vehicle::getVehicleData(double& speed, double& acceleration, double& controllerAcceleration, double& positionX, double& positionY, double& time)
+void TraCICommandInterface::Vehicle::getVehicleData(double& speed, double& acceleration, double& controllerAcceleration, double& positionX, double& positionY, double& time, bool realisticSensors)
 {
     std::string v;
-    getParameter(PAR_SPEED_AND_ACCELERATION, v);
+    getParameter(realisticSensors ? PAR_SPEED_AND_ACCELERATION_REALISTIC : PAR_SPEED_AND_ACCELERATION, v);
     ParBuffer buf(v);
     buf >> speed >> acceleration >> controllerAcceleration >> positionX >> positionY >> time;
 }
 
-void TraCICommandInterface::Vehicle::getVehicleData(Plexe::VEHICLE_DATA* data)
+void TraCICommandInterface::Vehicle::getVehicleData(Plexe::VEHICLE_DATA* data, bool realisticSensors)
 {
     std::string v;
-    getParameter(PAR_SPEED_AND_ACCELERATION, v);
+    getParameter(realisticSensors ? PAR_SPEED_AND_ACCELERATION_REALISTIC : PAR_SPEED_AND_ACCELERATION, v);
     ParBuffer buf(v);
     buf >> data->speed >> data->acceleration >> data->u >> data->positionX >> data->positionY >> data->time >> data->speedX >> data->speedY >> data->angle;
 }
@@ -1291,12 +1291,20 @@ void TraCICommandInterface::Vehicle::setFixedLane(int8_t laneIndex, bool safe)
     traci->laneChanges[nodeId] = lc;
 }
 
-void TraCICommandInterface::Vehicle::getRadarMeasurements(double& distance, double& relativeSpeed)
+void TraCICommandInterface::Vehicle::getRadarMeasurements(Plexe::RADAR_READING* data, bool realisticSensors)
 {
     std::string v;
-    getParameter(PAR_RADAR_DATA, v);
+    getParameter(realisticSensors ? PAR_RADAR_DATA_REALISTIC : PAR_RADAR_DATA, v);
     ParBuffer buf(v);
-    buf >> distance >> relativeSpeed;
+    buf >> data->distance >> data->relativeSpeed >> data->samplingTime;
+}
+
+void TraCICommandInterface::Vehicle::getRadarMeasurements(double& distance, double& relativeSpeed, double& samplingTime, bool realisticSensors)
+{
+    std::string v;
+    getParameter(realisticSensors ? PAR_RADAR_DATA_REALISTIC : PAR_RADAR_DATA, v);
+    ParBuffer buf(v);
+    buf >> distance >> relativeSpeed >> samplingTime;
 }
 
 void TraCICommandInterface::Vehicle::setLeaderVehicleFakeData(double controllerAcceleration, double acceleration, double speed)
@@ -1351,11 +1359,11 @@ void TraCICommandInterface::Vehicle::setVehicleData(const struct Plexe::VEHICLE_
     setParameter(CC_PAR_VEHICLE_DATA, buf.str());
 }
 
-void TraCICommandInterface::Vehicle::getStoredVehicleData(struct Plexe::VEHICLE_DATA* data, int index)
+void TraCICommandInterface::Vehicle::getStoredVehicleData(struct Plexe::VEHICLE_DATA* data, int index, bool realisticSensors)
 {
     ParBuffer inBuf;
     std::string v;
-    inBuf << CC_PAR_VEHICLE_DATA << index;
+    inBuf << (realisticSensors ? CC_PAR_VEHICLE_DATA_REALISTIC : CC_PAR_VEHICLE_DATA) << index;
     getParameter(inBuf.str(), v);
     ParBuffer outBuf(v);
     outBuf >> data->index >> data->speed >> data->acceleration >> data->positionX >> data->positionY >> data->time >> data->length >> data->u >> data->speedX >> data->speedY >> data->angle;
@@ -1395,6 +1403,20 @@ void TraCICommandInterface::Vehicle::enableAutoFeed(bool enable, std::string lea
 void TraCICommandInterface::Vehicle::usePrediction(bool enable)
 {
     setParameter(PAR_USE_PREDICTION, enable ? 1 : 0);
+}
+
+void TraCICommandInterface::Vehicle::setSensorParametersRange(Plexe::VEHICLE_SENSORS sensorType, double minValue, double maxValue, int decimalDigits, double updateInterval)
+{
+    ParBuffer inBuf;
+    inBuf << sensorType << minValue << maxValue << decimalDigits << updateInterval;
+    setParameter(PAR_SENSOR_PARAMETERS_RANGE, inBuf.str());
+}
+
+void TraCICommandInterface::Vehicle::setSensorParametersErrors(Plexe::VEHICLE_SENSORS sensorType, double absoluteError, double percentageError, bool sumErrors, int seed)
+{
+    ParBuffer inBuf;
+    inBuf << sensorType << absoluteError << percentageError << sumErrors << seed;
+    setParameter(PAR_SENSOR_PARAMETERS_ERRORS, inBuf.str());
 }
 
 void TraCICommandInterface::Vehicle::addPlatoonMember(std::string memberId, int position)

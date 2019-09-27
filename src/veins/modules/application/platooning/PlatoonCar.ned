@@ -27,6 +27,7 @@ import org.car2x.veins.modules.application.platooning.scenarios.BaseScenario;
 import org.car2x.veins.modules.application.platooning.protocols.BaseProtocol;
 import org.car2x.veins.modules.application.platooning.apps.BaseApp;
 import org.car2x.veins.modules.application.platooning.UnicastProtocol;
+import org.car2x.veins.modules.application.platooning.sensors.SensorParameters;
 import org.car2x.veins.modules.mobility.traci.TraCIMobility;
 import org.car2x.veins.modules.nic.Nic80211p;
 
@@ -77,6 +78,13 @@ module PlatoonCar
             parameters:
                 @display("p=130,172;i=block/cogwheel");
         }
+
+        // One submodule for each sensor present in the Plexe::VEHICLE_SENSORS enum (10)
+        sensors[10]: SensorParameters {
+            parameters:
+                sensorType = ancestorIndex(0); // the index of the array
+        }
+
     connections allowunconnected:
         unicast.upperControlIn <-- prot.lowerControlOut;
         unicast.upperControlOut --> prot.lowerControlIn;

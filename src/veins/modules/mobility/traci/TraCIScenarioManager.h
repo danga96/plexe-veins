@@ -84,13 +84,13 @@ public:
 
     TraCIScenarioManager();
     ~TraCIScenarioManager();
-    virtual int numInitStages() const
+    virtual int numInitStages() const override
     {
         return std::max(cSimpleModule::numInitStages(), 2);
     }
-    virtual void initialize(int stage);
-    virtual void finish();
-    virtual void handleMessage(cMessage* msg);
+    virtual void initialize(int stage) override;
+    virtual void finish() override;
+    virtual void handleMessage(cMessage* msg) override;
     virtual void handleSelfMsg(cMessage* msg);
 
     bool isConnected() const

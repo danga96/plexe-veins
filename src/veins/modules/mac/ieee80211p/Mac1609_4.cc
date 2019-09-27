@@ -55,7 +55,7 @@ void Mac1609_4::initialize(int stage)
         sigCollision = registerSignal("sigCollision");
 
         txPower = par("txPower").doubleValue();
-        bitrate = par("bitrate").longValue();
+        bitrate = par("bitrate").intValue();
         n_dbps = 0;
         setParametersForBitrate(bitrate);
 

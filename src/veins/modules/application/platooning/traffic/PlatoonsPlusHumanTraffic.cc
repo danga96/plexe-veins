@@ -26,11 +26,11 @@ void PlatoonsPlusHumanTraffic::initialize(int stage)
 
     if (stage == 0) {
 
-        nCars = par("nCars").longValue();
-        platoonSize = par("platoonSize").longValue();
-        nLanes = par("nLanes").longValue();
-        humanCars = par("humanCars").longValue();
-        humanLanes = par("humanLanes").longValue();
+        nCars = par("nCars").intValue();
+        platoonSize = par("platoonSize").intValue();
+        nLanes = par("nLanes").intValue();
+        humanCars = par("humanCars").intValue();
+        humanLanes = par("humanLanes").intValue();
         platoonInsertTime = SimTime(par("platoonInsertTime").doubleValue());
         platoonInsertSpeed = par("platoonInsertSpeed").doubleValue();
         platoonInsertDistance = par("platoonInsertDistance").doubleValue();

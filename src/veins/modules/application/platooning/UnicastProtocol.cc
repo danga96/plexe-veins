@@ -45,8 +45,8 @@ void UnicastProtocol::initialize(int stage)
         upperControlOut = findGate("upperControlOut");
 
         // get parameters
-        queueSize = par("queueSize").longValue();
-        maxAttempts = par("maxAttempts").longValue();
+        queueSize = par("queueSize").intValue();
+        maxAttempts = par("maxAttempts").intValue();
         ackTimeout = par("ackTimeout").doubleValue();
 
         // timeout message

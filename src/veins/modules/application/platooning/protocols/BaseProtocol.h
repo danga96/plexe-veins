@@ -144,7 +144,7 @@ protected:
      * Sends a platooning message with all information about the car. This is an utility function for
      * subclasses
      */
-    void sendPlatooningMessage(int destinationAddress);
+    virtual void sendPlatooningMessage(int destinationAddress);
 
     /**
      * This method must be overridden by subclasses to take decisions

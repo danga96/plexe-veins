@@ -164,6 +164,14 @@ public:
         void setActiveController(int activeController);
 
         /**
+         * Degrades the currently selected CACC controller to ACC.
+         *
+         * @param headway the headway confugured for the ACC algorithm,
+         * @param safetyMargin a safety factor applied to initial decelerations to prevent crashes during the switching phase;
+         */
+        void degradeToACC(double headway, double safetyMargin);
+
+        /**
          * Returns the currently active controller
          */
         int getActiveController();

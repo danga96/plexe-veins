@@ -161,20 +161,25 @@ void BaseApp::onPlatoonBeacon(const PlatooningBeacon* pb)
             traciVehicle->setFrontVehicleData(pb->getControllerAcceleration(), pb->getAcceleration(), pb->getSpeed(), pb->getPositionX(), pb->getPositionY(), pb->getTime());
         }
         // send data about every vehicle to the CACC. this is needed by the consensus controller
-        struct Plexe::VEHICLE_DATA vehicleData;
-        vehicleData.index = positionHelper->getMemberPosition(pb->getVehicleId());
-        vehicleData.acceleration = pb->getAcceleration();
-        vehicleData.length = pb->getLength();
-        vehicleData.positionX = pb->getPositionX();
-        vehicleData.positionY = pb->getPositionY();
-        vehicleData.speed = pb->getSpeed();
-        vehicleData.time = pb->getTime();
-        vehicleData.u = pb->getControllerAcceleration();
-        vehicleData.speedX = pb->getSpeedX();
-        vehicleData.speedY = pb->getSpeedY();
-        vehicleData.angle = pb->getAngle();
-        // send information to CACC
-        traciVehicle->setVehicleData(&vehicleData);
+        auto vehicleData = beaconToVehicleData(pb);
+        traciVehicle->setVehicleData(vehicleData.get());
     }
     delete pb;
+}
+
+std::shared_ptr<Plexe::VEHICLE_DATA> BaseApp::beaconToVehicleData(const PlatooningBeacon* pb) const
+{
+    auto vehicleData = std::make_shared<Plexe::VEHICLE_DATA>();
+    vehicleData->index = positionHelper->getMemberPosition(pb->getVehicleId());
+    vehicleData->acceleration = pb->getAcceleration();
+    vehicleData->length = pb->getLength();
+    vehicleData->positionX = pb->getPositionX();
+    vehicleData->positionY = pb->getPositionY();
+    vehicleData->speed = pb->getSpeed();
+    vehicleData->time = pb->getTime();
+    vehicleData->u = pb->getControllerAcceleration();
+    vehicleData->speedX = pb->getSpeedX();
+    vehicleData->speedY = pb->getSpeedY();
+    vehicleData->angle = pb->getAngle();
+    return vehicleData;
 }

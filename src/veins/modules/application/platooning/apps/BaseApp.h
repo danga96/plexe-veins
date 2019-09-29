@@ -96,6 +96,8 @@ protected:
      * Handles PlatoonBeacons
      */
     virtual void onPlatoonBeacon(const PlatooningBeacon* pb);
+
+    virtual std::shared_ptr<Plexe::VEHICLE_DATA> beaconToVehicleData(const PlatooningBeacon* pb) const;
 };
 
 #endif /* BASEAPP_H_ */

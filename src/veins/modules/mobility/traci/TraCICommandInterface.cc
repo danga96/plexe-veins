@@ -1160,6 +1160,13 @@ int TraCICommandInterface::Vehicle::getActiveController()
     return v;
 }
 
+void TraCICommandInterface::Vehicle::degradeToACC(double headway, double safetyMargin)
+{
+    setActiveController(Plexe::ACC);
+    setACCHeadwayTime(headway);
+    setParameter(PAR_ACC_DEGR_SAFETY_MARGIN, safetyMargin);
+}
+
 void TraCICommandInterface::Vehicle::setCACCConstantSpacing(double spacing)
 {
     setParameter(PAR_CACC_SPACING, spacing);

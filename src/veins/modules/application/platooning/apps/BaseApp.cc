@@ -68,6 +68,13 @@ void BaseApp::initialize(int stage)
     }
 }
 
+void BaseApp::finish()
+{
+    // Record whether the vehicle experienced a crash or not.
+    recordScalar("Crashed", traciVehicle->isCrashed());
+    Veins::BaseApplLayer::finish();
+}
+
 BaseApp::~BaseApp()
 {
     cancelAndDelete(recordData);

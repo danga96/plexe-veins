@@ -141,6 +141,11 @@ protected:
     }
 
     /**
+     * Constructs a platooning beacon containing the information regarding the current vehicle.
+     */
+    virtual PlatooningBeacon* generatePlatooningBeacon();
+
+    /**
      * Sends a platooning message with all information about the car. This is an utility function for
      * subclasses
      */

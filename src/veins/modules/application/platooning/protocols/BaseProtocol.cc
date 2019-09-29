@@ -147,22 +147,15 @@ void BaseProtocol::handleSelfMsg(cMessage* msg)
     }
 }
 
-void BaseProtocol::sendPlatooningMessage(int destinationAddress)
+PlatooningBeacon* BaseProtocol::generatePlatooningBeacon()
 {
-
     // vehicle's data to be included in the message
     Plexe::VEHICLE_DATA data;
     // get information about the vehicle via traci
     traciVehicle->getVehicleData(&data, true /* values obtained from realistic sensors */);
 
-    // create and send beacon
-    UnicastMessage* unicast = new UnicastMessage("", BEACON_TYPE);
-    unicast->setDestination(-1);
-    unicast->setPriority(priority);
-    unicast->setChannel(Channels::CCH);
-
     // create platooning beacon with data about the car
-    PlatooningBeacon* pkt = new PlatooningBeacon();
+    auto* pkt = new PlatooningBeacon();
     pkt->setControllerAcceleration(data.u);
     pkt->setAcceleration(data.acceleration);
     pkt->setSpeed(data.speed);
@@ -180,6 +173,21 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress)
     pkt->setKind(BEACON_TYPE);
     pkt->setByteLength(packetSize);
     pkt->setSequenceNumber(seq_n++);
+
+    return pkt;
+}
+
+void BaseProtocol::sendPlatooningMessage(int destinationAddress)
+{
+    (void) destinationAddress;
+
+    // create and send beacon
+    UnicastMessage* unicast = new UnicastMessage("", BEACON_TYPE);
+    unicast->setDestination(-1);
+    unicast->setPriority(priority);
+    unicast->setChannel(Channels::CCH);
+
+    auto pkt = generatePlatooningBeacon();
 
     // put platooning beacon into the message for the UnicastProtocol
     unicast->encapsulate(pkt);

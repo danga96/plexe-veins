@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<scenario initial_speed="15">
+    <acceleration_profile start_at="10" acceleration="-1.5" />
+    <acceleration_profile start_at="15" acceleration="0" />
+    <acceleration_profile start_at="20" acceleration="2" />
+    <acceleration_profile start_at="35" acceleration="0" />
+    <acceleration_profile start_at="45" acceleration="-4" />
+</scenario>

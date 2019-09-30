@@ -1,0 +1,57 @@
+#!/bin/bash
+
+MAX=$(./run "$@" -r 99999 2>/dev/null | grep -Po '<!>.*\.\.\K([0-9]+)')
+if [[ ! "$MAX" ]]
+then
+    echo "Something went wrong! Perhaps you selected the wrong configuration"
+    exit
+fi
+
+PARAMETERS=$@
+while [[ $1 != "-c" ]]
+do
+    shift
+done
+shift
+
+CONFIG_NAME=$1
+if [[ ! "$CONFIG_NAME" =~ NoGui ]]
+then
+    read -p "It seems you are trying to run a batch of simulations with the GUI enabled. Continue (y/n)? " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]
+    then
+        exit
+    fi
+fi
+
+CONFIG_NAME_TRIM=${1/NoGui/}
+
+RESULT_DIR=results
+RESULT_DIR_OUT=results/${CONFIG_NAME_TRIM}
+SUMMARY_DIR=summary
+LOG_DIR=log/${CONFIG_NAME_TRIM}
+
+mkdir -p "${RESULT_DIR_OUT}"
+mkdir -p "${SUMMARY_DIR}"
+mkdir -p "${LOG_DIR}"
+
+find "${RESULT_DIR}" -maxdepth 1 -type f -delete
+rm -f "${RESULT_DIR_OUT}"/*
+rm -f "${LOG_DIR}"/*
+
+echo "[$CONFIG_NAME] Scheduled $((MAX+1)) simulations"
+seq 0 "${MAX}" | xargs -i --max-procs="$(nproc)" bash -c "
+    echo Starting simulation \#{};
+        ./run $PARAMETERS -r {} > $LOG_DIR/$CONFIG_NAME\_{}.log 2>&1;
+        echo Completed simulation \#{}
+"
+
+echo
+echo "Exporting summary to '$SUMMARY_DIR/$CONFIG_NAME_TRIM.csv'"
+find ${RESULT_DIR} -maxdepth 1 -type f -exec cp {} "${RESULT_DIR_OUT}" \;
+scavetool export "$RESULT_DIR_OUT"/"$CONFIG_NAME"_*.{vec,sca} -o "$SUMMARY_DIR/$CONFIG_NAME_TRIM.csv"
+find ${RESULT_DIR} -maxdepth 1 -type f -delete
+echo
+echo "*-*-*-*-*-*-*-*-*-*-"
+echo

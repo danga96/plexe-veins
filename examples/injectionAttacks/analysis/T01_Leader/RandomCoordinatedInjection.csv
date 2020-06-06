@@ -1,0 +1,9 @@
+controller,spacing,headway,leaderSpeed,useRadarPredSpeed,attackStart,repetition,min_distance,expected_distance,max_distance,min_distance_delta,max_distance_delta,vehicle,crashed
+PATH,10.0,0.0,100.0,False,10.0,0.0,0.0,10.0,10.0221,10.0,0.02210000000000001,2,True
+PATH,10.0,0.0,100.0,True,10.0,0.0,0.0,10.0,10.0021,10.0,0.002100000000000435,2,True
+Consensus,10.0,0.0,100.0,False,10.0,0.0,0.0,10.0,10.0001,10.0,9.999999999976694e-05,2,True
+Consensus,10.0,0.0,100.0,True,10.0,0.0,0.0,10.0,10.0001,10.0,9.999999999976694e-05,3,True
+Flatbed,10.0,0.0,100.0,False,10.0,0.0,0.0,10.0,10.0001,10.0,9.999999999976694e-05,2,True
+Flatbed,10.0,0.0,100.0,True,10.0,0.0,0.0,10.0,10.0001,10.0,9.999999999976694e-05,3,True
+Ploeg,2.0,0.288,100.0,False,10.0,0.0,0.0,10.0,10.4494,10.0,0.4494000000000007,2,True
+Ploeg,2.0,0.288,100.0,True,10.0,0.0,3.85705,10.0,10.0706,6.14295,0.07060000000000066,2,False

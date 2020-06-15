@@ -61,6 +61,15 @@ private:
     // output vector for delays
     cOutVector leaderDelayIdOut, frontDelayIdOut, leaderDelayOut, frontDelayOut;
 
+    // The vectors used to output the values advertised through V2X
+    cOutVector V2XPositionXOut, V2XPositionYOut;
+    cOutVector V2XSpeedOut, V2XSpeedXOut, V2XSpeedYOut;
+    cOutVector V2XAccelerationOut, V2XControllerAccelerationOut;
+    cOutVector V2XTimeOut;
+
+    // The vectors used to output the values read by the radar (with errors)
+    cOutVector radarTimeOut, radarDistanceOut, radarRelSpeedOut;
+
 protected:
     // determines position and role of each vehicle
     BasePositionHelper* positionHelper;
@@ -150,6 +159,17 @@ protected:
      * subclasses
      */
     virtual void sendPlatooningMessage(int destinationAddress);
+
+    /**
+     * Logs the information advertised through V2X
+     */
+    virtual void logPlatooningBeacon(PlatooningBeacon* pb);
+
+    /**
+     * Logs the values read by the radar (characterized by realistic errors)
+     * It is implemented here to guarantee synchronized time-stamps with the platooning beacon information.
+     */
+    virtual void logRadarReadings();
 
     /**
      * This method must be overridden by subclasses to take decisions

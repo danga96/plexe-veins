@@ -1,0 +1,87 @@
+From 59577f7350819cab651bc362b0b33e1d10df7783 Mon Sep 17 00:00:00 2001
+From: giorio94 <33200527+giorio94@users.noreply.github.com>
+Date: Thu, 4 Jul 2019 14:55:32 +0200
+Subject: [PATCH 15/26] Save the data communicated through V2X as vectors
+
+---
+ .../platooning/protocols/BaseProtocol.cc      | 21 +++++++++++++++++++
+ .../platooning/protocols/BaseProtocol.h       | 11 ++++++++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/src/veins/modules/application/platooning/protocols/BaseProtocol.cc b/src/veins/modules/application/platooning/protocols/BaseProtocol.cc
+index 4e4b5c33..57ff7522 100644
+--- a/src/veins/modules/application/platooning/protocols/BaseProtocol.cc
++++ b/src/veins/modules/application/platooning/protocols/BaseProtocol.cc
+@@ -79,6 +79,15 @@ void BaseProtocol::initialize(int stage)
+         leaderDelayOut.setName("leaderDelay");
+         frontDelayOut.setName("frontDelay");
+ 
++        V2XPositionXOut.setName("V2XPositionX");
++        V2XPositionYOut.setName("V2XPositionY");
++        V2XSpeedOut.setName("V2XSpeed");
++        V2XSpeedXOut.setName("V2XSpeedX");
++        V2XSpeedYOut.setName("V2XSpeedY");
++        V2XAccelerationOut.setName("V2XAcceleration");
++        V2XControllerAccelerationOut.setName("V2XControllerAcceleration");
++        V2XTimeOut.setName("V2XTime");
++
+         // subscribe to signals for channel busy state and collisions
+         findHost()->subscribe(sigChannelBusy, this);
+         findHost()->subscribe(sigCollision, this);
+@@ -188,12 +197,24 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress)
+     unicast->setChannel(Channels::CCH);
+ 
+     auto pkt = generatePlatooningBeacon();
++    logPlatooningBeacon(pkt);
+ 
+     // put platooning beacon into the message for the UnicastProtocol
+     unicast->encapsulate(pkt);
+     sendDown(unicast);
+ }
+ 
++void BaseProtocol::logPlatooningBeacon(PlatooningBeacon* pb) {
++    V2XPositionXOut.record(pb->getPositionX());
++    V2XPositionYOut.record(pb->getPositionY());
++    V2XSpeedOut.record(pb->getSpeed());
++    V2XSpeedXOut.record(pb->getSpeedX());
++    V2XSpeedYOut.record(pb->getSpeedY());
++    V2XAccelerationOut.record(pb->getAcceleration());
++    V2XControllerAccelerationOut.record(pb->getControllerAcceleration());
++    V2XTimeOut.record(pb->getTime());
++}
++
+ void BaseProtocol::handleUnicastMsg(UnicastMessage* unicast)
+ {
+ 
+diff --git a/src/veins/modules/application/platooning/protocols/BaseProtocol.h b/src/veins/modules/application/platooning/protocols/BaseProtocol.h
+index acec3326..0611b322 100644
+--- a/src/veins/modules/application/platooning/protocols/BaseProtocol.h
++++ b/src/veins/modules/application/platooning/protocols/BaseProtocol.h
+@@ -61,6 +61,12 @@ private:
+     // output vector for delays
+     cOutVector leaderDelayIdOut, frontDelayIdOut, leaderDelayOut, frontDelayOut;
+ 
++    // The vectors used to output the values advertised through V2X
++    cOutVector V2XPositionXOut, V2XPositionYOut;
++    cOutVector V2XSpeedOut, V2XSpeedXOut, V2XSpeedYOut;
++    cOutVector V2XAccelerationOut, V2XControllerAccelerationOut;
++    cOutVector V2XTimeOut;
++
+ protected:
+     // determines position and role of each vehicle
+     BasePositionHelper* positionHelper;
+@@ -151,6 +157,11 @@ protected:
+      */
+     virtual void sendPlatooningMessage(int destinationAddress);
+ 
++    /**
++     * Logs the information advertised through V2X
++     */
++    virtual void logPlatooningBeacon(PlatooningBeacon* pb);
++
+     /**
+      * This method must be overridden by subclasses to take decisions
+      * about what to do.
+-- 
+2.20.1
+

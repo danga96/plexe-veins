@@ -50,7 +50,7 @@ seq 0 "${MAX}" | xargs -i --max-procs="$(nproc)" bash -c "
 echo
 echo "Exporting summary to '$SUMMARY_DIR/$CONFIG_NAME_TRIM.csv'"
 find ${RESULT_DIR} -maxdepth 1 -type f -exec cp {} "${RESULT_DIR_OUT}" \;
-scavetool export "$RESULT_DIR_OUT"/"$CONFIG_NAME"_*.sca -o "$SUMMARY_DIR/$CONFIG_NAME_TRIM.csv"
+scavetool export "$RESULT_DIR_OUT"/"$CONFIG_NAME"_*.{sca,vec} -o "$SUMMARY_DIR/$CONFIG_NAME_TRIM.csv"
 find ${RESULT_DIR} -maxdepth 1 -type f -delete
 echo
 echo "*-*-*-*-*-*-*-*-*-*-"

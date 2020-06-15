@@ -79,6 +79,19 @@ void BaseProtocol::initialize(int stage)
         leaderDelayOut.setName("leaderDelay");
         frontDelayOut.setName("frontDelay");
 
+        V2XPositionXOut.setName("V2XPositionX");
+        V2XPositionYOut.setName("V2XPositionY");
+        V2XSpeedOut.setName("V2XSpeed");
+        V2XSpeedXOut.setName("V2XSpeedX");
+        V2XSpeedYOut.setName("V2XSpeedY");
+        V2XAccelerationOut.setName("V2XAcceleration");
+        V2XControllerAccelerationOut.setName("V2XControllerAcceleration");
+        V2XTimeOut.setName("V2XTime");
+
+        radarTimeOut.setName("RadarTime");
+        radarDistanceOut.setName("RadarDistance");
+        radarRelSpeedOut.setName("RadarRelativeSpeed");
+
         // subscribe to signals for channel busy state and collisions
         findHost()->subscribe(sigChannelBusy, this);
         findHost()->subscribe(sigCollision, this);
@@ -188,10 +201,34 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress)
     unicast->setChannel(Channels::CCH);
 
     auto pkt = generatePlatooningBeacon();
+    logPlatooningBeacon(pkt);
+    // Log together with the platooning beacon, to guarantee synchronized time-stamps
+    logRadarReadings();
 
     // put platooning beacon into the message for the UnicastProtocol
     unicast->encapsulate(pkt);
     sendDown(unicast);
+}
+
+void BaseProtocol::logPlatooningBeacon(PlatooningBeacon* pb) {
+    V2XPositionXOut.record(pb->getPositionX());
+    V2XPositionYOut.record(pb->getPositionY());
+    V2XSpeedOut.record(pb->getSpeed());
+    V2XSpeedXOut.record(pb->getSpeedX());
+    V2XSpeedYOut.record(pb->getSpeedY());
+    V2XAccelerationOut.record(pb->getAcceleration());
+    V2XControllerAccelerationOut.record(pb->getControllerAcceleration());
+    V2XTimeOut.record(pb->getTime());
+}
+
+void BaseProtocol::logRadarReadings() {
+
+    double radarDistance, radarRelSpeed, samplingTime;
+    traciVehicle->getRadarMeasurements(radarDistance, radarRelSpeed, samplingTime, true /* log the values with uncertainties */);
+
+    radarTimeOut.record(samplingTime);
+    radarDistanceOut.record(radarDistance);
+    radarRelSpeedOut.record(radarRelSpeed);
 }
 
 void BaseProtocol::handleUnicastMsg(UnicastMessage* unicast)

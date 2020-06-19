@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+summary_detect = np.zeros( (6, 8) )
 
 class KalmanFilter:
     def __init__(self, A=None, B=None, H=None, Q=None, R=None, P=None, x0=None):
@@ -72,6 +73,8 @@ class InjectionDetectionAnalyzer:
         self.leader_attack_detected = np.zeros(self.vehicles)
         self.predecessor_attack_detected = np.zeros(self.vehicles)
         self.attack_start_vector = np.zeros(self.vehicles)
+        
+        self.simulation = 0
 
         _sampling_times = self.data.loc[self.data.name == "V2XTime"].sort_values("module")["vecvalue"]
         _length = np.min(list(map(len, _sampling_times)))
@@ -150,7 +153,7 @@ class InjectionDetectionAnalyzer:
         except TypeError:
             self.attack_start = None
 
-    def plot_detection_graph(self, title, ax=None, legend=True):
+    def plot_detection_graph(self, title, ax=None, sim=0, legend=True):
 
         if ax is None:
             _, ax = plt.subplots(1, 1)
@@ -167,6 +170,7 @@ class InjectionDetectionAnalyzer:
         if self.attack_start_vector[0]:
             ax.axvline(self.attack_start_vector[0], color="black", linestyle=":", lw=1)
 
+        self.simulation = sim
         
 
         _vehicle = 0
@@ -179,12 +183,13 @@ class InjectionDetectionAnalyzer:
 
         _foll_data = self.vehicle_data[_vehicle + 1]
         _foll_kf = self.kf_predictions[_vehicle + 1]
-
+        #predData->positionX += predData->speed * (follData->time - predData->time);
+        #_pred_data["V2XPositionComp"] += _pred_data["V2XSpeed"] *(_foll_data["RadarTime"] - _pred_data["RadarTime"])
+        
         _v2x_distance = _pred_data["V2XPositionComp"] - _foll_data["V2XPosition"]
         _kf_distance = _pred_kf["kfEstimatedPositionComp"] - _foll_kf["kfEstimatedPosition"]
         _kf_position_std = np.sqrt(_pred_kf["kfEstimatedPositionVarComp"]) + np.sqrt(_foll_kf["kfEstimatedPositionVar"])
-        _expected_distance = InjectionDetectionAnalyzer.__compute_expected_distance(
-            self.cacc_params, _foll_data["V2XSpeed"])
+        _expected_distance = InjectionDetectionAnalyzer.__compute_expected_distance(self.cacc_params, _foll_data["V2XSpeed"])
 
         _v2x_relative_speed = _pred_data["V2XSpeedComp"] - _foll_data["V2XSpeed"]
         _kf_relative_speed = _pred_kf["kfEstimatedSpeedComp"] - _foll_kf["kfEstimatedSpeed"]
@@ -208,6 +213,7 @@ class InjectionDetectionAnalyzer:
         }
         _lines.append(self._plot_detection_line(ax, "C1", "Radar distance" if legend else None, **_data))
 
+        
         # V2X Distance - KF Distance
         _data = {
             "sampling_times": _sampling_times,
@@ -260,8 +266,9 @@ class InjectionDetectionAnalyzer:
         # Attack detected
         ax.axvline(self.predecessor_attack_detected[1], color="red", linewidth=1, label="Detection" if legend else None)
 
-       
+        summary_detect[self.simulation][7] = round(self.predecessor_attack_detected[1],4)
 
+        summary_detect[0][0] = round(self.attack_start_vector[0],4)
 
         return np.array(_lines)
 
@@ -271,21 +278,17 @@ class InjectionDetectionAnalyzer:
             sampling_times, values, thresholds, self.detection_parameters["attackTolerance"])
         # if (color=="C7"):
         #     print("_attack_start ", _attack_start, " label", label, " values", values, " thresh", thresholds)
-        print("attack ",_attack_start, " label ", label, " color", color)
-        if (_attack_start is not None):
-            return [
-                ax.plot(sampling_times, values, color=color, label=label)[0] ,
-                ax.plot(sampling_times, thresholds, color=color , alpha=0.75, linestyle=":")[0],
-                ax.plot(sampling_times, -thresholds, color=color , alpha=0.75, linestyle=":")[0],
-                ax.axvline(_attack_start, color=color , linestyle=":") if _attack_start is not None else None
-            ]
-        else:
-            return [
-                ax.plot(sampling_times, values, color=color, label=label)[0] ,
-                ax.plot(sampling_times, thresholds, color=color , alpha=0.75, linestyle=":")[0],
-                ax.plot(sampling_times, -thresholds, color=color , alpha=0.75, linestyle=":")[0],
-                ax.axvline(_attack_start, color=color , linestyle=":") if _attack_start is not None else None
-            ]
+        index = int(''.join(filter(str.isdigit, color)))
+        summary_detect[self.simulation][index if index<2 else index-1] = _attack_start
+        print("attack ",_attack_start, " label ", label, " color ", color)
+       
+        return [
+            ax.plot(sampling_times, values, color=color, label=label)[0] ,
+            ax.plot(sampling_times, thresholds, color=color , alpha=0.75, linestyle=":")[0],
+            ax.plot(sampling_times, -thresholds, color=color , alpha=0.75, linestyle=":")[0],
+            ax.axvline(_attack_start, color=color , linestyle=":") if _attack_start is not None else None
+        ]
+
                 
 
     @staticmethod
@@ -409,7 +412,7 @@ if __name__ == "__main__":
         "distanceKFThresholdFactor": 0.33,#paper 0.33
         "distanceRadarThresholdFactor": 0.25,#0.20 - paper 0.25
         "distanceV2XKFThresholdFactor": 1,#paper 1
-        "distanceRadarKFThresholdFactor": 1.5,#1.5 - paper 1
+        "distanceRadarKFThresholdFactor": 1,#1.5 - paper 1
 
         "speedV2XKFThresholdFactor": 1,#paper 1
         "speedRadarV2XThresholdFactor": 1,#paper 1
@@ -431,24 +434,25 @@ if __name__ == "__main__":
         "CoordinatedInjection": InjectionDetectionAnalyzer(base_path, "{}CoordinatedInjection.csv".format(scenario), detection_parameters)
     }
 
-    f1, ax1, = plt.subplots(len(analyzers), 1, sharex="all", num="{} Scenario - {} - Attack detection".format(scenario, controller))
+    f1, ax1 = plt.subplots(len(analyzers), 1, sharex="all", num="{} Scenario - {} - Attack detection".format(scenario, controller))
     f1.suptitle("Attack detection")
     print(len(analyzers))
     f1_lines = []
-    for i, key in enumerate(analyzers):                             #[i]
-        f1_lines.append(analyzers[key].plot_detection_graph(key, ax1[i], legend=i == 0))
+    for i, key in enumerate(analyzers):                          #[i]
+        f1_lines.append(analyzers[key].plot_detection_graph(key, ax1[i], sim=i , legend=i == 0))
     
     InjectionDetectionAnalyzer.setup_hide_lines(f1, np.array(f1_lines), f1.legend())
-
-    """ columns = ('1', '2', '3', '4', '5')
-    rows = ('6', '7', '3', '10', '5')
-    data = [[ 66386, 174296,  75131, 577908,  32015],
-        [ 58230, 381139,  78045,  99308, 160454],
-        [ 89135,  80552, 152558, 497981, 603535],
-        [ 78415,  81858, 150656, 193263,  69638],
-        [139361, 331509, 343164, 781380,  52269]]
+    
+    print( " summary ", summary_detect)
+    f2, ax2 = plt.subplots(1,1, figsize=(14,2))
+    f2.suptitle("Summary")
+    columns = ('KF distance', 'Radar distance', 'V2X-KF distance', 'Radar-KF distance', 'V2X-KF speed', 'Radar-V2X speed', 'Radar-KF speed', 'DETECTION')
+    rows = ('NoInjection', 'PositionInjection', 'SpeedInjection', 'AccelerationInjection', 'AllInjection', 'CoordinatedInjection')
+   # data = [[ 66386, 174296,  75131, 577908,  32015, 174296,  75131, 577908,  32015]]
     ax2.axis('tight')
     ax2.axis('off')
-    ax2.table(cellText=data, rowLabels=rows, colLabels=columns, loc="center") """
+    tab = ax2.table(cellText=summary_detect, colWidths=[0.13 for x in columns], rowLabels=rows, colLabels=columns, loc="center",  bbox=[0.02,0.05,1.1,1])
+    tab.auto_set_font_size(False)
+    tab.set_fontsize(11)
 
     plt.show()

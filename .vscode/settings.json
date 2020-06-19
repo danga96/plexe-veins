@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "*.tcc": "cpp",
+        "bufferobject": "cpp",
+        "callback": "cpp",
+        "drawable": "cpp",
+        "image": "cpp",
+        "node": "cpp",
+        "scriptengine": "cpp",
+        "state": "cpp",
+        "stateattribute": "cpp",
+        "stateset": "cpp",
+        "uniform": "cpp",
+        "config": "cpp",
+        "units": "cpp",
+        "functional": "cpp"
+    }
+}

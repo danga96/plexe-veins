@@ -135,6 +135,7 @@ void BeaconAnalyzer::cacheFollowerData(const std::shared_ptr<Plexe::VEHICLE_DATA
 
 void BeaconAnalyzer::initializeDistanceDetectors(const DetectionParameters& detectionParameters, double radarDistanceError)
 {
+    //------------right elements of inequalities (distance)
     auto attackTolerance = detectionParameters.attackTolerance;
 
     auto distanceKFDetectorTh = [detectionParameters](double expectedDistance){
@@ -162,6 +163,7 @@ void BeaconAnalyzer::initializeDistanceDetectors(const DetectionParameters& dete
 
 void BeaconAnalyzer::initializeSpeedDetectors(const DetectionParameters& detectionParameters, double speedError, double radarSpeedError)
 {
+    //------------right elements of inequalities (speed)
     auto attackTolerance = detectionParameters.attackTolerance;
 
     auto speedV2XKFDetectorTh = [speedError, detectionParameters](double kfVariance, double acceleration){

@@ -18,6 +18,8 @@
 #ifndef ATTACKDETECTOR_H
 #define ATTACKDETECTOR_H
 
+#include <iostream>
+
 template <typename F>
 class AttackDetector {
 
@@ -57,6 +59,25 @@ public:
             else {
                 attackCounter++;
             }
+        }
+
+        return attackDetected();
+    }
+
+    template <typename... Args>
+    bool update_2(double value, Args&&... args)
+    {
+
+        if (!attackDetected()) {
+            if (std::abs(value) < thresholdFunction(args...)) {
+                attackCounter = 0;
+                std::cout<<"Value: "<<std::abs(value)<<" TH:"<<thresholdFunction(args...)<<" Attack_count: "<<attackCounter<<std::endl;
+            }
+            else {
+                attackCounter++;
+                std::cout<<"Value: "<<std::abs(value)<<" TH:"<<thresholdFunction(args...)<<" Attack_count: "<<attackCounter<<std::endl;
+            }
+             
         }
 
         return attackDetected();

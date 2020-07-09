@@ -98,9 +98,9 @@ void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData
 
     // V2X Distance - KF Distance
     distanceV2XKFAvg->addValue(v2xDistance - kfDistance);
-    distanceV2XKFDetector->update(distanceV2XKFAvg->getRunningAverage(),
+    /*bool var = */distanceV2XKFDetector->update(distanceV2XKFAvg->getRunningAverage(),
                                   predEstimation.second(0, 0), follEstimation.second(0, 0));
-
+    //std::cout<<"Time "<<simTime().dbl()<<" pred: "<<predEstimation.first(0)<<" foll: "<<follEstimation.first(0)<<" var:"<<var<<endl;
     // V2X Speed - KF Speed
     speedV2XKFAvg->addValue(predData->speed - predEstimation.first(1));
     speedV2XKFDetector->update(speedV2XKFAvg->getRunningAverage(), predEstimation.second(1, 1), follData->acceleration);

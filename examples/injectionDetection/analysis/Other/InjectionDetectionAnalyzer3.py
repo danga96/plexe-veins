@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 summary_detect = []
 summary_best_alpha = []
+best_alpha_attacks = []
 
 class KalmanFilter:
     def __init__(self, A=None, B=None, H=None, Q=None, R=None, P=None, x0=None):
@@ -388,11 +389,13 @@ class InjectionDetectionAnalyzer:
 
     @staticmethod
     def __compensate_position(dt, position, speed, acceleration):
-        return position + dt * speed + 0.5 * dt * dt * acceleration
+        return position + dt * speed
+        #return position + dt * speed + 0.5 * dt * dt * acceleration
 
     @staticmethod
     def __compensate_speed(dt, speed, acceleration):
-        return speed + dt * acceleration
+        return speed
+        #return speed + dt * acceleration
 
     @staticmethod
     def __apply_kalman_filter(positions, speeds, accelerations, sensor_params, predict_only=False, use_gps=True):
@@ -448,31 +451,6 @@ class InjectionDetectionAnalyzer:
     @staticmethod
     def __compute_expected_distance(cacc_params, speed):
         return cacc_params["spacing"] + speed * cacc_params["headway"]
-
-    @staticmethod
-    def setup_hide_lines(figure, lines, legend):
-
-        _lined = dict()
-        for _idx, _legend_line in enumerate(legend.get_lines()):
-            _legend_line.set_picker(5)  # 5 pts tolerance
-            _lined[_legend_line] = _idx
-            
-
-        def _on_line_pick(event):
-            _fn_legend_line = event.artist
-            _fn_line_idx = _lined[_fn_legend_line]
-
-            _visible = False
-            for _fn_line in lines[:, _fn_line_idx].flatten():
-                if _fn_line is not None:
-                    _fn_line.set_visible(not _fn_line.get_visible())
-                    _visible = _fn_line.get_visible()
-
-            # Change the alpha on the line in the legend so we can see what lines have been toggled
-            _fn_legend_line.set_alpha(1.0 if _visible else 0.5)
-            plt.draw()
-
-        figure.canvas.mpl_connect('pick_event', _on_line_pick)
 
 class CollectDataForAttack:
     def __init__(self, base_path, file_name):
@@ -547,7 +525,10 @@ if __name__ == "__main__":
     
     #NoAttack
     
-    AllAttacks = ["{}AllInjection.csv".format(scenario)]
+    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+    #               "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    best_alpha_attacks = np.zeros( (len(AllAttacks), 7) )
     for _attack_index, attack in enumerate(AllAttacks):
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
@@ -574,15 +555,27 @@ if __name__ == "__main__":
             row_sim.append("Sim{}".format(simulation_index))
             simulation_index += 1
             
+        columns = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed']
+        rows = ["Original"]
+        rows += row_sim
+        print("type",type(summary_best_alpha))
+        summary_best_alpha_DF = pd.DataFrame(data=summary_best_alpha, index=rows, columns=columns)
+        summary_best_alpha_DF = summary_best_alpha_DF.replace(1.0, np.nan)
+        a = np.array( [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan] )
+        summary_best_alpha_DF.loc["Original"] = a
 
-        print(summary_best_alpha)
+        
+        print("summary_best_alpha_DF \n",summary_best_alpha_DF)
+        max_value =  summary_best_alpha_DF[columns].max(axis=0)
+        #max_value =  summary_best_alpha_DF.loc(1:2,[columns]).max(axis=0)
+        print("Max value:\n", max_value)
+        best_alpha_attacks[_attack_index] = max_value
+        
         f1, ax1 = plt.subplots(2,1)
         f1.canvas.set_window_title(attack)
         f1.suptitle(attack)
         f1.set_figwidth(12)
-        columns = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed']
-        rows = ["Original"]
-        rows += row_sim
+        
         #ax1.axis('tight')
         ax1[0].axis('off')
         #ax1.autoscale(enable=True, axis="Both")
@@ -592,10 +585,11 @@ if __name__ == "__main__":
         tab.auto_set_column_width([0,1,2,3,4,5,6,7])
         #tab.scale(1,1.5)
         tab.set_fontsize(11)
+        """ EXPORT TO CSV
         diff_percentage_csv(columns)
         test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/test.csv"
         np.savetxt(test_path, summary_best_alpha, header=','.join(columns), fmt=",".join(["%f"] * (np.asarray(summary_best_alpha).shape[1])))
-
+        """
         ax1[1].axis('off')
         columns += ["Start|Pdetect"]
         rows.remove("Original")
@@ -609,17 +603,11 @@ if __name__ == "__main__":
         f1.tight_layout()#adapt table in width
 
         
-
+    print("BEST ALPHA ATTACKS\n", best_alpha_attacks)
+    columns.remove("Start|Pdetect")
+    best_alpha_attacks_DF = pd.DataFrame(data=best_alpha_attacks, index=AllAttacks, columns=columns)
+    maxs =  best_alpha_attacks_DF[columns].max(axis=0)
+    print("MAXXS\n",maxs)
     plt.show()
     
-    exit()
-    analyzers = {
-        #"NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters),
-        #"PositionInjection": InjectionDetectionAnalyzer(base_path, "{}PositionInjection.csv".format(scenario), detection_parameters),
-        #"SpeedInjection": InjectionDetectionAnalyzer(base_path, "{}SpeedInjection.csv".format(scenario), detection_parameters),
-        #"AccelerationInjection": InjectionDetectionAnalyzer(base_path, "{}AccelerationInjection.csv".format(scenario), detection_parameters),
-        "AllInjection": InjectionDetectionAnalyzer(base_path, "{}AllInjection.csv".format(scenario), detection_parameters),
-        #"CoordinatedInjection": InjectionDetectionAnalyzer(base_path, "{}CoordinatedInjection.csv".format(scenario), detection_parameters)
-    }
-
-   
+    exit()   

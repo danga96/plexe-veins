@@ -32,22 +32,22 @@ class ExtractValidationResults:
             'attrvalue': ExtractValidationResults.__parse_attrvalue_column,
             'vectime': ExtractValidationResults.__parse_ndarray,
             'vecvalue': ExtractValidationResults.__parse_ndarray})
-
+        """ 
         print("RUN", self.data.run.unique())
 
         for i in self.data.run.unique():
             grouped = self.data.groupby("run")
             print("grouped",grouped.get_group(i))
             #print(i)
-
+        """
         self.attack_start = ExtractValidationResults.__extract_attack_start(self.data)
-        print("Attack_start",self.attack_start)
+        #print("Attack_start",self.attack_start)
         self.crashed = ExtractValidationResults.__extract_crashed(self.data)
-        print("Crash",self.crashed)
+        #print("Crash",self.crashed)
         self.leader_detection, self.predecessor_detection =\
             ExtractValidationResults.__extract_attack_detections(self.data)
-        print("Leader detection",self.leader_detection)
-        print("Predecessor detection",self.predecessor_detection)
+        #print("Leader detection",self.leader_detection)
+        #print("Predecessor detection",self.predecessor_detection)
 
     def print_summary(self, verbose):
 
@@ -141,16 +141,16 @@ class ExtractValidationResults:
 
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument("inputs", nargs="+", help="Files to be processed")
-    #parser.add_argument("--verbose", action="store_true", help="Print a more verbose summary")
-    #args = parser.parse_args()
-    _input = "/home/tesi/src/plexe-veins/examples/injectionDetection/summary/RandomAllInjection.csv"
-    #for _input in args.inputs:
-    print("Processing file '%s'..." % _input)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("inputs", nargs="+", help="Files to be processed")
+    parser.add_argument("--verbose", action="store_true", help="Print a more verbose summary")
+    args = parser.parse_args()
+    #_input = "/home/tesi/src/plexe-veins/examples/injectionDetection/summary/RandomAllInjection.csv"
+    for _input in args.inputs:
+        print("Processing file '%s'..." % _input)
 
-    _base_path, _filename = os.path.split(_input)
-    extractor = ExtractValidationResults(_base_path, _filename)
-    extractor.print_summary(True)
+        _base_path, _filename = os.path.split(_input)
+        extractor = ExtractValidationResults(_base_path, _filename)
+        extractor.print_summary(True)
 
-    print("Finished processing file '%s'...\n" % _input)
+        print("Finished processing file '%s'...\n" % _input)

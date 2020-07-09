@@ -505,11 +505,13 @@ class InjectionDetectionAnalyzer:
 
     @staticmethod
     def __compensate_position(dt, position, speed, acceleration):
-        return position + dt * speed + 0.5 * dt * dt * acceleration
+        return position + dt * speed
+        #return position + dt * speed + 0.5 * dt * dt * acceleration
 
     @staticmethod
     def __compensate_speed(dt, speed, acceleration):
-        return speed + dt * acceleration
+        return speed
+        #return speed + dt * acceleration
 
     @staticmethod
     def __apply_kalman_filter(positions, speeds, accelerations, sensor_params, predict_only=False, use_gps=True):

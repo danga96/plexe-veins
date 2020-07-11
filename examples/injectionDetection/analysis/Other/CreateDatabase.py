@@ -1,11 +1,11 @@
 import re
 import os
+import csv
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-summary_detect = np.zeros( (6, 8) )
 
 class KalmanFilter:
     def __init__(self, A=None, B=None, H=None, Q=None, R=None, P=None, x0=None):
@@ -37,20 +37,10 @@ class KalmanFilter:
 
 class InjectionDetectionAnalyzer:
 
-    def __init__(self, base_path, file_name, detection_parameters, use_prediction=False, simulation=0):
+    def __init__(self, data, detection_parameters, simulation_index, use_prediction=False):
 
-        _path = os.path.join(base_path, file_name)
-        #print(_path)
-        _data = pd.read_csv(_path, converters={
-            'run': InjectionDetectionAnalyzer.__parse_run_column,
-            'attrvalue': InjectionDetectionAnalyzer.__parse_attrvalue_column,
-            'vectime': InjectionDetectionAnalyzer.__parse_ndarray,
-            'vecvalue': InjectionDetectionAnalyzer.__parse_ndarray})
-
-        grouped = _data.groupby("run")
-        print("enumerate",sorted(_data.run.unique())[simulation])
-        self.data = grouped.get_group(sorted(_data.run.unique())[simulation])
-        
+        self.data = data
+        self.simulation_index = simulation_index
 
         def _get_sensor_error(attrname, default=0.):
             try:
@@ -79,7 +69,6 @@ class InjectionDetectionAnalyzer:
         self.predecessor_attack_detected = np.zeros(self.vehicles)
         self.attack_start_vector = np.zeros(self.vehicles)
         
-        self.attack = 0
 
         _sampling_times = self.data.loc[self.data.name == "V2XTime"].sort_values("module")["vecvalue"]
         _length = np.min(list(map(len, _sampling_times)))
@@ -107,6 +96,8 @@ class InjectionDetectionAnalyzer:
             _positions_comp = InjectionDetectionAnalyzer.__compensate_position(_dt, _positions, _speeds, _accelerations)
             _speeds_comp = InjectionDetectionAnalyzer.__compensate_speed(_dt, _speeds, _accelerations)
             #print("deltaT",_dt)
+            """ _positions_comp = _positions + _dt * _speeds
+            _speeds_comp = _speeds """
 
             self.vehicle_data.append({
                 "RealPosition": _current_vehicle_data.loc["posx"]["vecvalue"][:_length],
@@ -156,22 +147,17 @@ class InjectionDetectionAnalyzer:
             "vehicle-length": 4,  # meters
         }
 
-    def plot_detection_graph(self, title, ax=None, attack=0, legend=True):
-
-        if ax is None:
-            _, ax = plt.subplots(1, 1)
-
-        if title is not None:
-            ax.set_title(title)
- 
-        print("-------------------------------------",title,"------------------")
-
-        
-
         if self.attack_start_vector[0]:
-            ax.axvline(self.attack_start_vector[0], color="black", linestyle=":", lw=1)
+            self.attack_start = self.attack_start_vector[0]
+        else:
+            self.attack_start = None
 
-        self.attack = attack
+    def detection_analyzer(self):
+
+        #if self.attack_start_vector[0]:
+        #    ax.axvline(self.attack_start_vector[0], color="black", linestyle=":", lw=1)
+        self._set_alpha_parameters()
+
         self._expected_distance = []
         self._kf_position_std = []
         self._kf_speed_std = []
@@ -201,111 +187,149 @@ class InjectionDetectionAnalyzer:
         _kf_relative_speed = _pred_kf["kfEstimatedSpeedComp"] - _foll_kf["kfEstimatedSpeed"]
         self._kf_speed_std = np.sqrt(_pred_kf["kfEstimatedSpeedVarComp"]) + np.sqrt(_foll_kf["kfEstimatedSpeedVar"])
 
-        _lines = []
      
         self._pred_kf_kfEstimatedSpeedVar = _pred_kf["kfEstimatedSpeedVar"]
         self._pred_data_V2XAcceleration = _pred_data["V2XAcceleration"]
-  
+
+        _data = []
         # KF Distance
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": _kf_distance - self._expected_distance - self.cacc_params["vehicle-length"],
             "thresholds": self.detection_parameters["distanceKFThresholdFactor"] * self._expected_distance,
-        }
-        _lines.append(self._plot_detection_line(ax, "C1", "KF distance" if legend else None, **_data))
-        print("KF distance",_data["thresholds"][-1])
+        })
+        #self._optimal_threshold(self.detection_parameters["attackTolerance"], self.attack_start_vector[0], 1, **_data)
+        #print("KF distance, a regime",_data["thresholds"][-1])
        
         # V2X Distance - KF Distance
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": InjectionDetectionAnalyzer.__running_avg(_v2x_distance - _kf_distance, _window),
             "thresholds": 3 * self._kf_position_std * self.detection_parameters["distanceV2XKFThresholdFactor"],
-        }
-        _lines.append(self._plot_detection_line(ax, "C2", "V2X-KF distance" if legend else None, **_data))
-        print("V2X-KF distance",_data["thresholds"][-1])
-        """         
-        for i in range(len(_data["sampling_times"])):
-            print("Time:",_data["sampling_times"][i]," pred: ",_pred_kf["kfEstimatedPositionComp"][i], " foll: ",_foll_kf["kfEstimatedPosition"][i])
-        print("\n\n") 
-        """
-         
+        })
+        #self._optimal_threshold(self.detection_parameters["attackTolerance"], self.attack_start_vector[0], 2, **_data)
+        #print("V2X-KF distance",_data["thresholds"][-1])
+        
+
         # V2X Speed - KF Speed
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": InjectionDetectionAnalyzer.__running_avg(
                 _pred_data["V2XSpeed"] - _pred_kf["kfEstimatedSpeed"], _window),
             "thresholds": (self.sensor_params["ego-speed"] + np.sqrt(_pred_kf["kfEstimatedSpeedVar"]) * 3) *
                           (1 + np.abs(_pred_data["V2XAcceleration"]) * self.detection_parameters["accelerationFactor"]) *
                            self.detection_parameters["speedV2XKFThresholdFactor"],
-        }
-        _lines.append(self._plot_detection_line(ax, "C3", "V2X-KF speed" if legend else None, **_data))
-        print("V2X-KF speed",_data["thresholds"][-1])
+        })
+        #_lines.append(self._plot_detection_line(ax, "C3", "V2X-KF speed" if legend else None, **_data))
+        #print("V2X-KF speed",_data["thresholds"][-1])
 
         # Radar Distance
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": _foll_data["RadarDistance"] - self._expected_distance,
             "thresholds": self.detection_parameters["distanceRadarThresholdFactor"] * self._expected_distance,
-        }
-        _lines.append(self._plot_detection_line(ax, "C4", "Radar distance" if legend else None, **_data))
-        print("Radar distance",_data["thresholds"][-1])
+        })
+        #_lines.append(self._plot_detection_line(ax, "C4", "Radar distance" if legend else None, **_data))
+        #print("Radar distance",_data["thresholds"][-1])
         
         # Radar Distance - KF Distance
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": InjectionDetectionAnalyzer.__running_avg(_foll_data["RadarDistance"] - _kf_distance + self.cacc_params["vehicle-length"], _window),
             #"values": InjectionDetectionAnalyzer.__running_avg(_foll_data["RadarDistance"] - _kf_distance, _window),
             "thresholds": (self.sensor_params["radar-distance"] + 3 * self._kf_position_std) *
                            self.detection_parameters["distanceRadarKFThresholdFactor"],
-        }
-        _lines.append(self._plot_detection_line(ax, "C5", "Radar-KF distance" if legend else None, **_data))
-        print("Radar-KF distance",_data["thresholds"][-1])
+        })
+        #_lines.append(self._plot_detection_line(ax, "C5", "Radar-KF distance" if legend else None, **_data))
+        #print("Radar-KF distance",_data["thresholds"][-1])
 
         # Radar Speed - V2X Speed
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": InjectionDetectionAnalyzer.__running_avg(_foll_data["RadarRelativeSpeed"] - _v2x_relative_speed, _window),
             "thresholds": (self.sensor_params["radar-speed"] + self.sensor_params["ego-speed"]*2) *
                           (1 + np.abs(_pred_data["V2XAcceleration"]) * self.detection_parameters["accelerationFactor"]) *
                            self.detection_parameters["speedRadarV2XThresholdFactor"],
-        }
-        _lines.append(self._plot_detection_line(ax, "C6", "Radar-V2X speed" if legend else None, **_data))
-        print("Radar-V2X speed",_data["thresholds"][-1])
+        })
+        #_lines.append(self._plot_detection_line(ax, "C6", "Radar-V2X speed" if legend else None, **_data))
+        #print("Radar-V2X speed",_data["thresholds"][-1])
 
         # Radar Speed - KF Speed
-        _data = {
+        _data.append( {
             "sampling_times": _sampling_times,
             "values": InjectionDetectionAnalyzer.__running_avg(_foll_data["RadarRelativeSpeed"] - _kf_relative_speed, _window),
             "thresholds": (self.sensor_params["radar-speed"] + self._kf_speed_std * 3) *
                           (1 + np.abs(_pred_data["V2XAcceleration"]) * self.detection_parameters["accelerationFactor"]) *
                            self.detection_parameters["speedRadarKFThresholdFactor"],
-        }
-        _lines.append(self._plot_detection_line(ax, "C7", "Radar-KF speed" if legend else None, **_data))
-        print("Radar-KF speed",_data["thresholds"][-1]) 
+        })
+        #_lines.append(self._plot_detection_line(ax, "C7", "Radar-KF speed" if legend else None, **_data))
+        #print("Radar-KF speed",_data["thresholds"][-1])
 
         # Attack detected
-        ax.axvline(self.predecessor_attack_detected[1], color="red", linewidth=1, label="Detection" if legend else None)
+        #ax.axvline(self.predecessor_attack_detected[1], color="red", linewidth=1, label="Detection" if legend else None)
 
-        summary_detect[self.attack][7] = round(self.predecessor_attack_detected[1],4)
+        #summary_detect[self.simulation][7] = round(self.predecessor_attack_detected[1],4)
+        self._get_statistics(_data)
 
-        summary_detect[0][0] = round(self.attack_start_vector[0],4)
+        return None
 
-        return np.array(_lines)
+    def _get_statistics(self, _data ):
+        window = 10
+        for _eq, _d in enumerate(_data):
+            __data = _d
+            self._statistics_for_eq(_eq, **__data)
+            target_col = self._set_target_col(_d['sampling_times'],window)
+            print("TARGET COL:", target_col)
+            break
+        return None
 
-    
-    def _plot_detection_line(self, ax, color, label, sampling_times, values, thresholds):
-        _attack_detected = InjectionDetectionAnalyzer.__compute_attack_start(
-            sampling_times, values, thresholds, self.detection_parameters["attackTolerance"])
+    def _set_target_col(self,sampling_times,window):
+        attack_start = self.attack_start
+        target_array = np.zeros( int(len(sampling_times)/window) )
+        
+        if attack_start is None:
+            return target_array
 
-        index = int(''.join(filter(str.isdigit, color)))
-        summary_detect[self.attack][index-1] = _attack_detected
-       
-        return [
-            ax.plot(sampling_times, values, color=color, label=label)[0] ,
-            ax.plot(sampling_times, thresholds, color=color , alpha=0.75, linestyle=":")[0],
-            ax.plot(sampling_times, -thresholds, color=color , alpha=0.75, linestyle=":")[0],
-            ax.axvline(_attack_detected, color=color , linestyle=":") if _attack_detected is not None else None
-        ]
+        print("type: ",type(sampling_times), " len: ",len(sampling_times), " attack_start: ", attack_start)
+        #print("sample", sampling_times)
+        direct_index = int(attack_start/0.1-10)
+        direct_index -= 1 if sampling_times[direct_index]-attack_start > 0.1 else 0
+        """#INDICE ACCESSO DIRETTO MANUALE
+        print("atk st",int(attack_start/0.1-10))
+        for _i, _v in enumerate(sampling_times):
+            if _v > attack_start:
+                _index = _i
+                break
+        print("index",_index," value",sampling_times[_index])
+        """
+
+        print("direct",direct_index, "value direct:",sampling_times[direct_index])
+        print("difference: ",sampling_times[direct_index]-attack_start)
+        start = int(direct_index/window)
+        
+        target_array[start:] = 1
+        print ("START: ", start, " END: ", len(target_array), " LAST: ", target_array[-1])
+        return target_array
+
+    def _statistics_for_eq(self, _eq, sampling_times, values, thresholds ): 
+        attack_tolerance = self.detection_parameters["attackTolerance"]   
+        
+
+        _attack_detected = InjectionDetectionAnalyzer.__compute_attack_start(sampling_times, values, thresholds, attack_tolerance)
+
+        #exit()
+        return None
+
+    def _set_alpha_parameters(self):
+        self.alpha_parameters = np.zeros(len(self.detection_parameters))
+
+        self.alpha_parameters[1] = self.detection_parameters["distanceKFThresholdFactor"]
+        self.alpha_parameters[2] = self.detection_parameters["distanceV2XKFThresholdFactor"]
+        self.alpha_parameters[3] = self.detection_parameters["speedV2XKFThresholdFactor"]
+        self.alpha_parameters[4] = self.detection_parameters["distanceRadarThresholdFactor"]
+        self.alpha_parameters[5] = self.detection_parameters["distanceRadarKFThresholdFactor"]
+        self.alpha_parameters[6] = self.detection_parameters["speedRadarV2XThresholdFactor"]
+        self.alpha_parameters[7] = self.detection_parameters["speedRadarKFThresholdFactor"]
 
     @staticmethod
     def __compensate_position(dt, position, speed, acceleration):
@@ -372,6 +396,19 @@ class InjectionDetectionAnalyzer:
     def __compute_expected_distance(cacc_params, speed):
         return cacc_params["spacing"] + speed * cacc_params["headway"]
 
+class CollectDataForAttack:
+    def __init__(self, base_path, file_name):
+        _path = os.path.join(base_path, file_name)
+        #print(_path)
+        self.all_data = pd.read_csv(_path, converters={
+            'run': CollectDataForAttack.__parse_run_column,
+            'attrvalue': CollectDataForAttack.__parse_attrvalue_column,
+            'vectime': CollectDataForAttack.__parse_ndarray,
+            'vecvalue': CollectDataForAttack.__parse_ndarray})
+        
+    def get_data(self):
+        return self.all_data
+
     @staticmethod
     def __parse_run_column(value):
         match = re.search('([a-zA-Z]+)-([0-9]+)-(.*)', value)
@@ -391,30 +428,8 @@ class InjectionDetectionAnalyzer:
     def __parse_ndarray(value):
         return np.fromstring(value, sep=' ') if value else None
 
-    @staticmethod
-    def setup_hide_lines(figure, lines, legend):
-
-        _lined = dict()
-        for _idx, _legend_line in enumerate(legend.get_lines()):
-            _legend_line.set_picker(5)  # 5 pts tolerance
-            _lined[_legend_line] = _idx
-            
-        def _on_line_pick(event):
-            _fn_legend_line = event.artist
-            _fn_line_idx = _lined[_fn_legend_line]
-
-            _visible = False
-            for _fn_line in lines[:, _fn_line_idx].flatten():
-                if _fn_line is not None:
-                    _fn_line.set_visible(not _fn_line.get_visible())
-                    _visible = _fn_line.get_visible()
-
-            # Change the alpha on the line in the legend so we can see what lines have been toggled
-            _fn_legend_line.set_alpha(1.0 if _visible else 0.5)
-            plt.draw()
-
-        figure.canvas.mpl_connect('pick_event', _on_line_pick)
-
+def _remove_negative(ds):
+    return ds[ds > 0]
 
 if __name__ == "__main__":
 
@@ -440,37 +455,24 @@ if __name__ == "__main__":
     #print(detection_parameters)
     """ for key, value in detection_parameters.items():
         print("key ",key," value", value) """
-   # base_path = os.path.join(base_path, controller)
+    # base_path = os.path.join(base_path, controller)
+    
     #NoAttack
-    _simulation = 0
-    analyzers = {
-        "NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        #"PositionInjection": InjectionDetectionAnalyzer(base_path, "{}PositionInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        #"SpeedInjection": InjectionDetectionAnalyzer(base_path, "{}SpeedInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        #"AccelerationInjection": InjectionDetectionAnalyzer(base_path, "{}AccelerationInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        #"AllInjection": InjectionDetectionAnalyzer(base_path, "{}AllInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        #"CoordinatedInjection": InjectionDetectionAnalyzer(base_path, "{}CoordinatedInjection.csv".format(scenario), detection_parameters, simulation=_simulation)
-    }
+    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+    #               "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}NoInjection.csv".format(scenario)]
+    for _attack_index, attack in enumerate(AllAttacks):
+        data_object = CollectDataForAttack(base_path, attack)
+        test_data = data_object.get_data()
+        grouped = test_data.groupby("run")
+        _simulations = len(test_data.run.unique())
 
-    f1, ax1 = plt.subplots(len(analyzers), 1, sharex="all", num="{} Scenario - {} - Attack detection".format(scenario, controller))
-    f1.suptitle("Attack detection")
-    print(len(analyzers))
-    f1_lines = []
-    for i, key in enumerate(analyzers):                          #[i]    i
-        f1_lines.append(analyzers[key].plot_detection_graph(key, ax1, attack=1 , legend=i == 0))
+        
+        for simulation_index, simulation in enumerate(sorted(test_data.run.unique())):#per ogni simulazione
+            #print("-----------------------------------------------------------------------------------------------------------",simulation)
+            data = grouped.get_group(simulation)
+            analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)
+            analyzer.detection_analyzer()
+            simulation_index += 1
     
-    InjectionDetectionAnalyzer.setup_hide_lines(f1, np.array(f1_lines), f1.legend())
-    
-    print( " summary ", summary_detect)
-    f2, ax2 = plt.subplots(1,1, figsize=(14,2))
-    f2.suptitle("Summary")
-    columns = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed', 'DETECTION']
-    rows = ('NoInjection', 'PositionInjection', 'SpeedInjection', 'AccelerationInjection', 'AllInjection', 'CoordinatedInjection')
-   # data = [[ 66386, 174296,  75131, 577908,  32015, 174296,  75131, 577908,  32015]]
-    ax2.axis('tight')
-    ax2.axis('off')
-    tab = ax2.table(cellText=summary_detect, colWidths=[0.13 for x in columns], rowLabels=rows, colLabels=columns, loc="center",  bbox=[0.02,0.05,1.1,1])
-    tab.auto_set_font_size(False)
-    tab.set_fontsize(11)
-
-    plt.show()
+    exit()  

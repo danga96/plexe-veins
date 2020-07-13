@@ -287,7 +287,8 @@ class InjectionDetectionAnalyzer:
             __data = _d
             self._statistics_for_eq(_eq, **__data)
         #print("AD _",attack_detect)
-        l_detect = np.fmin.reduce(np.delete(attack_detect, [3,4,5,6,7]))
+    
+        l_detect = np.fmin.reduce(np.delete(attack_detect, [3,4,5,6]))
         p_detect = np.fmin.reduce(attack_detect)
         #print ("L_detect:",l_detect)
         #print ("P_detect:",p_detect)
@@ -460,9 +461,9 @@ if __name__ == "__main__":
     # base_path = os.path.join(base_path, controller)
     
     #NoAttack
-    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-    #               "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
-    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+                   "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     for _attack_index, attack in enumerate(AllAttacks):
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
@@ -473,7 +474,7 @@ if __name__ == "__main__":
         leader_attack_detect_delay = np.zeros( _simulations )
         predecessor_attack_detect_delay = np.zeros( _simulations )
         attack_detect = np.zeros( 7 )
-        
+
         for simulation_index, simulation in enumerate(sorted(test_data.run.unique())):#per ogni simulazione
             #print("-----------------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)

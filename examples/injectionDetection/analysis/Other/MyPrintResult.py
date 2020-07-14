@@ -461,21 +461,24 @@ if __name__ == "__main__":
     # base_path = os.path.join(base_path, controller)
     
     #NoAttack
-    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-                   "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
-    #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+    #               "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     for _attack_index, attack in enumerate(AllAttacks):
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
-        _simulations = len(test_data.run.unique())
+                                                #Range [start:stop] -> [start,stop)
+        sim_lists = sorted(test_data.run.unique())[2:]
+
+        _simulations = len(sim_lists)
         leader_attack_detect = 0
         predecessor_attack_detect = 0
         leader_attack_detect_delay = np.zeros( _simulations )
         predecessor_attack_detect_delay = np.zeros( _simulations )
-        attack_detect = np.zeros( 7 )
+        attack_detect = np.zeros( 7 )        
 
-        for simulation_index, simulation in enumerate(sorted(test_data.run.unique())):#per ogni simulazione
+        for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
             #print("-----------------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)

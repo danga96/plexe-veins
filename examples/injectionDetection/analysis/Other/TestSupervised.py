@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn.metrics import classification_report
+from heatmap import heatmap, corrplot
 
 csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB_norm.csv"
 attacks = pd.read_csv(csv_path)
@@ -32,3 +35,6 @@ print(classification_report(Y_test, Y_pred))
 from sklearn.metrics import confusion_matrix
 confusion_matrix = confusion_matrix(Y_test, Y_pred)
 print(confusion_matrix)
+
+sns.heatmap(attacks.corr())
+plt.show()

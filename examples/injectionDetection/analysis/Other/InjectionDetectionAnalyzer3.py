@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 summary_detect = []
-summary_best_alpha = []
+best_alpha_sims = []
 best_alpha_attacks = []
 
 class KalmanFilter:
@@ -337,7 +337,7 @@ class InjectionDetectionAnalyzer:
         
         print("best detect ",_best_detect, " best th:",_best_alpha)
         #print("simulation index",self.simulation_index, "   eq",_eq)
-        summary_best_alpha[self.simulation_index+1][_eq-1] = round(_best_alpha,4)
+        best_alpha_sims[self.simulation_index+1][_eq-1] = round(_best_alpha,4)
         summary_detect[self.simulation_index][_eq-1] = str(round(_attack_detected_original,2))+"|"+str(round(_best_detect,2))
         return None
 
@@ -486,12 +486,12 @@ class CollectDataForAttack:
 
 def diff_percentage_csv(columns):
     summary_alpha_percentage = []
-    row = np.asarray(summary_best_alpha).shape[0]
-    col = np.asarray(summary_best_alpha).shape[1]
+    row = np.asarray(best_alpha_sims).shape[0]
+    col = np.asarray(best_alpha_sims).shape[1]
     summary_alpha_percentage = np.zeros( (row, col) )
     for i in range(1,row):
         for j in range(col):
-            summary_alpha_percentage[i][j] = ((summary_best_alpha[i-1][j]-summary_best_alpha[i][j])/summary_best_alpha[i-1][j])*100*(-1)
+            summary_alpha_percentage[i][j] = ((best_alpha_sims[i-1][j]-best_alpha_sims[i][j])/best_alpha_sims[i-1][j])*100*(-1)
 
     test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/test_percentage.csv"
     np.savetxt(test_path, summary_alpha_percentage, header=','.join(columns), fmt=",".join(["%f"] * (np.asarray(summary_alpha_percentage).shape[1])))
@@ -533,11 +533,15 @@ if __name__ == "__main__":
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
-        summary_detect = [ [ " " for c in range( 8 ) ] 
-                                    for r in range( len(test_data.run.unique()) ) ] 
-        summary_best_alpha = np.zeros( (len(test_data.run.unique())+1, 7) )
+                                                #Range [start:stop] -> [start,stop)
+        sim_lists = sorted(test_data.run.unique())[:]
+        _simulations = len(sim_lists)
 
-        summary_best_alpha[0] = [detection_parameters["distanceKFThresholdFactor"], 
+        summary_detect = [ [ " " for c in range( 8 ) ] 
+                                    for r in range( _simulations ) ] 
+        best_alpha_sims = np.zeros( (_simulations+1, 7) )
+
+        best_alpha_sims[0] = [detection_parameters["distanceKFThresholdFactor"], 
                                 detection_parameters["distanceV2XKFThresholdFactor"],
                                 detection_parameters["speedV2XKFThresholdFactor"],
                                 detection_parameters["distanceRadarThresholdFactor"],
@@ -547,7 +551,7 @@ if __name__ == "__main__":
        
         
         row_sim = []
-        for simulation_index, simulation in enumerate(sorted(test_data.run.unique())):#per ogni simulazione
+        for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
             print("-----------------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)
@@ -558,16 +562,16 @@ if __name__ == "__main__":
         columns = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed']
         rows = ["Original"]
         rows += row_sim
-        print("type",type(summary_best_alpha))
-        summary_best_alpha_DF = pd.DataFrame(data=summary_best_alpha, index=rows, columns=columns)
-        summary_best_alpha_DF = summary_best_alpha_DF.replace(1.0, np.nan)
+        print("type",type(best_alpha_sims))
+        best_alpha_sims_DF = pd.DataFrame(data=best_alpha_sims, index=rows, columns=columns)
+        best_alpha_sims_DF = best_alpha_sims_DF.replace(1.0, np.nan)
         a = np.array( [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan] )
-        summary_best_alpha_DF.loc["Original"] = a
+        best_alpha_sims_DF.loc["Original"] = a
 
         
-        print("summary_best_alpha_DF \n",summary_best_alpha_DF)
-        max_value =  summary_best_alpha_DF[columns].max(axis=0)
-        #max_value =  summary_best_alpha_DF.loc(1:2,[columns]).max(axis=0)
+        print("best_alpha_sims_DF \n",best_alpha_sims_DF)
+        max_value =  best_alpha_sims_DF[columns].max(axis=0)
+        #max_value =  best_alpha_sims_DF.loc(1:2,[columns]).max(axis=0)
         print("Max value:\n", max_value)
         best_alpha_attacks[_attack_index] = max_value
         
@@ -580,7 +584,7 @@ if __name__ == "__main__":
         ax1[0].axis('off')
         #ax1.autoscale(enable=True, axis="Both")
               
-        tab = ax1[0].table(cellText=summary_best_alpha, rowLabels=rows, colLabels=columns, loc="center")
+        tab = ax1[0].table(cellText=best_alpha_sims, rowLabels=rows, colLabels=columns, loc="center")
         tab.auto_set_font_size(False)
         tab.auto_set_column_width([0,1,2,3,4,5,6,7])
         #tab.scale(1,1.5)
@@ -588,7 +592,7 @@ if __name__ == "__main__":
         """ EXPORT TO CSV
         diff_percentage_csv(columns)
         test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/test.csv"
-        np.savetxt(test_path, summary_best_alpha, header=','.join(columns), fmt=",".join(["%f"] * (np.asarray(summary_best_alpha).shape[1])))
+        np.savetxt(test_path, best_alpha_sims, header=','.join(columns), fmt=",".join(["%f"] * (np.asarray(best_alpha_sims).shape[1])))
         """
         ax1[1].axis('off')
         columns += ["Start|Pdetect"]

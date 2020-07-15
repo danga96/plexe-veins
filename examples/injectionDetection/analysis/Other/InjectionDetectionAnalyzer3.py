@@ -534,7 +534,7 @@ if __name__ == "__main__":
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                 #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[:]
+        sim_lists = sorted(test_data.run.unique())[:100]
         _simulations = len(sim_lists)
 
         summary_detect = [ [ " " for c in range( 8 ) ] 
@@ -557,7 +557,7 @@ if __name__ == "__main__":
             analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)
             analyzer.detection_analyzer()
             row_sim.append("Sim{}".format(simulation_index))
-            simulation_index += 1
+            #simulation_index += 1
             
         columns = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed']
         rows = ["Original"]

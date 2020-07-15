@@ -3,24 +3,33 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn.metrics import classification_report
 from heatmap import heatmap, corrplot
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB_norm.csv"
+csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
 attacks = pd.read_csv(csv_path)
 
 print(attacks.info())
 
+
 X = attacks.drop(["Detection"], axis=1).values
 Y = attacks["Detection"].values
+print(X)
+indices = np.arange(len(Y))
+X_train, X_test, Y_train, Y_test, idx1, idx2 = train_test_split(X, Y, indices, test_size = 0.3, random_state = 0, shuffle=True)
 
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.3, random_state = 0)
-
-lr = LogisticRegression()
+lr = LogisticRegression(C=10)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+print(X_train)
+print("MEAN: ",scaler.mean_)
+print("STD: ",scaler.var_**0.5)
+X_test = scaler.transform(X_test)
 
 lr.fit(X_train, Y_train)
 
@@ -34,7 +43,19 @@ print(classification_report(Y_test, Y_pred))
 
 from sklearn.metrics import confusion_matrix
 confusion_matrix = confusion_matrix(Y_test, Y_pred)
-print(confusion_matrix)
 
+
+print(confusion_matrix)
+"""
+print("Y_pred: \n",Y_pred)
+print("Y_pred_proba: \n",Y_pred_proba)
+print("X_test: \n",X_test)
+print("idx1: \n",idx1, " len:",len(idx1))
+print("idx1: \n",idx2, " len:",len(idx2))
+print("TEST: ", X[idx2[0]])
+"""
+""" 
 sns.heatmap(attacks.corr())
 plt.show()
+
+"""

@@ -7,9 +7,12 @@ import numpy as np
 import pandas as pd
 import time
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
-columns = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed', 'Detection']
-DF_to_export = pd.DataFrame(columns=columns)
+col_train = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed', 'Detection']
+col_test = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed','Time','Start','Detection']
+    
+
 window = 10
 runningAvgWindow = 10 #paper 10
 
@@ -156,7 +159,7 @@ class InjectionDetectionAnalyzer:
         else:
             self.attack_start = None
 
-    def detection_analyzer(self):
+    def detection_analyzer(self, is_train):
 
         self._expected_distance = []
         self._pred_kf_kfEstimatedSpeedVar = []
@@ -240,14 +243,23 @@ class InjectionDetectionAnalyzer:
         #_lines.append(self._plot_detection_line(ax, "C7", "Radar-KF speed" if legend else None, **_data))
         #print("Radar-KF speed",_data["thresholds"][-1])
 
-        stats_for_sim = self._get_stats_for_sim(_data, _sampling_times)
-        global DF_to_export
-        DF_to_export = DF_to_export.append(stats_for_sim, ignore_index = True)
-        return None
+        stats_for_sim = self._get_stats_for_sim(_data, _sampling_times, col_train if is_train else col_test)
+        if is_train is False:
+            stats_for_sim.Time = (_sampling_times[window-1::window])[0:stats_for_sim.shape[0]]
+            #print("STATS.TIME: ",stats_for_sim.Time)
+            #print("Sample time: ",_sampling_times)
+            stats_for_sim['Start'] = self.attack_start if self.attack_start is not None else 0
+            #print("ROW: ",stats_for_sim.shape[0], "len firs col: ", len(stats_for_sim['KF distance']))
+            #print("START: ",stats_for_sim)
+            
+        #global DF_train
+        #DF_train = DF_train.append(stats_for_sim, ignore_index = True)
+        return stats_for_sim
 
-    def _get_stats_for_sim(self, _data, sampling_times ):
+    def _get_stats_for_sim(self, _data, sampling_times, col ):
         global window
-        stats_for_sim = pd.DataFrame(columns=columns)
+        #print("COLLLL",col)
+        stats_for_sim = pd.DataFrame(columns=col)
         for _eq, _d in enumerate(_data):
             stats_for_sim[stats_for_sim.columns[_eq]] = self._set_eq_col(_eq, _d['values'], window)
             #break
@@ -393,48 +405,58 @@ def _remove_negative(ds):
     return ds[ds > 0]
 
 if __name__ == "__main__":
-
     base_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/summary/"#../InjectionDetectionData
     scenario = "Random" #Constant
     controller = "CACC" #Test
 
     # base_path = os.path.join(base_path, controller)
-    
+    DF_train = pd.DataFrame(columns=col_train)
+    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/"
     #NoAttack
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-                   "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+                   "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
     #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     for _attack_index, attack in enumerate(AllAttacks):
+        DF_test = pd.DataFrame(columns=col_test)
+
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
-        _simulations = len(test_data.run.unique())
+                                               #Range [start:stop] -> [start,stop)
+        sim_lists = sorted(test_data.run.unique())
+        _simulations = len(sim_lists)
+
         NoInjection = "NoInjection" in attack
 
-        for simulation_index, simulation in enumerate(sorted(test_data.run.unique())):#per ogni simulazione
+        for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
             #print("-----------------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, simulation_index, NoInjection)
-            analyzer.detection_analyzer()
-            simulation_index += 1
+            is_train = True if simulation_index < 3 else False
+            stats = analyzer.detection_analyzer(is_train)
+
+            if is_train :
+                DF_train = DF_train.append(stats, ignore_index = True)
+            else:
+                DF_test = DF_test.append(stats, ignore_index = True)
+
+        print("----------------DF TO EXPORT-----------------\n",DF_test)
+        DF_test.to_csv(export_path+'/Test/'+attack,index=False, header=True)
+
     
-    print("----------------DF TO EXPORT-----------------\n",DF_to_export)
-    print("--- %s s ---" % ((time.time() - start_time)))
-
-
+    print("----------------DF TO EXPORT-----------------\n",DF_train)
+    
     #EXPORT ORIGINAL
-    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
-    DF_to_export.to_csv (export_path, index = False, header=True)
-    print(DF_to_export,"\n","MAX: \n",DF_to_export.max(), "\n MIN: \n", DF_to_export.min())
+    DF_train.to_csv (export_path+'DB.csv', index = False, header=True)
+    print(DF_train,"\n","MAX: \n",DF_train.max(), "\n MIN: \n", DF_train.min())
     # NORMALIZATION
-    mms = MinMaxScaler()
-    DF_to_export[DF_to_export.columns[0:-1]] = mms.fit_transform(DF_to_export[DF_to_export.columns[0:-1]])
+    mms = StandardScaler()
+    DF_train[DF_train.columns[0:-1]] = mms.fit_transform(DF_train[DF_train.columns[0:-1]])
     #print(to_export_norm)
     # EXPORT NORMALIZED TO CSV
-    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB_norm.csv"
-    DF_to_export.to_csv (export_path, index = False, header=True)
+    DF_train.to_csv (export_path+'DB_norm.csv', index = False, header=True)
 
-    
+    print("--- %s s ---" % ((time.time() - start_time)))
 
     exit()  

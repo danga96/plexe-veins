@@ -461,15 +461,15 @@ if __name__ == "__main__":
     # base_path = os.path.join(base_path, controller)
     
     #NoAttack
-    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-    #               "{}SpeedInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
-    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+                   "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     for _attack_index, attack in enumerate(AllAttacks):
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                 #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[2:]
+        sim_lists = sorted(test_data.run.unique())[:100]
 
         _simulations = len(sim_lists)
         leader_attack_detect = 0
@@ -483,7 +483,7 @@ if __name__ == "__main__":
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)
             analyzer.detection_analyzer()
-            simulation_index += 1
+            #simulation_index += 1
         
 
         print("------------- ",attack," (TOT_SIM: ",_simulations,") -------------")

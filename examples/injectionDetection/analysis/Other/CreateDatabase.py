@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 
 col_train = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed', 'Detection']
-col_test = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed','Time','Start','Detection']
+col_test = ['KF distance', 'V2X-KF distance', 'V2X-KF speed', 'Radar distance', 'Radar-KF distance', 'Radar-V2X speed', 'Radar-KF speed','Run','Time','Start','Detection']
     
 
 window = 10
@@ -249,6 +249,7 @@ class InjectionDetectionAnalyzer:
             #print("STATS.TIME: ",stats_for_sim.Time)
             #print("Sample time: ",_sampling_times)
             stats_for_sim['Start'] = self.attack_start if self.attack_start is not None else 0
+            stats_for_sim['Run'] = self.simulation_index
             #print("ROW: ",stats_for_sim.shape[0], "len firs col: ", len(stats_for_sim['KF distance']))
             #print("START: ",stats_for_sim)
             

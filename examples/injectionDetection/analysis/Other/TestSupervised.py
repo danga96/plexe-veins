@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 from sklearn import metrics
 from sklearn.metrics import classification_report
 from heatmap import heatmap, corrplot
@@ -16,14 +21,17 @@ attacks = pd.read_csv(csv_path)
 
 print(attacks.info())
 
+#dfObj.drop([dfObj.columns[1] , dfObj.columns[2]] , axis='columns', inplace=True)
+cols = [1,2,4,5,12]
+print("X",attacks.values[2])
+X = attacks.drop(attacks.columns[[3,4,5,6,-1]], axis=1).values
 
-X = attacks.drop(["Detection"], axis=1).values
 Y = attacks["Detection"].values
-print(X)
+print("X",X[2])
 indices = np.arange(len(Y))
 X_train, X_test, Y_train, Y_test, idx1, idx2 = train_test_split(X, Y, indices, test_size = 0.3, random_state = 0, shuffle=True)
 
-lr = LogisticRegression(C=10)
+lr = LogisticRegression()
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 print(X_train)

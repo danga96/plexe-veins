@@ -59,10 +59,5 @@ subprojects/veins_inet/examples/**/.tkenvrc
 subprojects/veins_inet/examples/**/.qtenvrc
 subprojects/veins_inet/examples/**/.cmdenv-log
 subprojects/veins_inet/examples/**/valgrind.out
-examples/injectionDetection/summary/f_f_50/output_01_printresult_py.txt
-examples/injectionDetection/summary/f_f_50/RandomAccelerationInjection.csv
-examples/injectionDetection/summary/f_f_50/RandomAllInjection.csv
-examples/injectionDetection/summary/f_f_50/RandomCoordinatedInjection.csv
-examples/injectionDetection/summary/f_f_50/RandomNoInjection.csv
-examples/injectionDetection/summary/f_f_50/RandomPositionInjection.csv
-examples/injectionDetection/summary/f_f_50/RandomSpeedInjection.csv
+examples/injectionDetection/summary/f_f_50/
+examples/injectionDetection/summary/f_200/

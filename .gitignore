@@ -61,3 +61,4 @@ subprojects/veins_inet/examples/**/.cmdenv-log
 subprojects/veins_inet/examples/**/valgrind.out
 examples/injectionDetection/summary/f_f_50/
 examples/injectionDetection/summary/f_200/
+examples/injectionDetection/summary/

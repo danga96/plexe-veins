@@ -39,15 +39,17 @@ class DataAnalysis:
             self.Y_test[attack] = self.DF_test_collection[attack]['Detection'].values
 
         self.models = []
-        #self.models.append(('LR', LogisticRegression()))
+        """
+        self.models.append(('LR', LogisticRegression()))
 
         self.models.append(('LDA', LinearDiscriminantAnalysis()))
-        #self.models.append(('KNN', KNeighborsClassifier()))
-        """
+        self.models.append(('KNN', KNeighborsClassifier()))
+        
         self.models.append(('CART', DecisionTreeClassifier()))
         self.models.append(('NB', GaussianNB()))
-        self.models.append(('SVM', SVC()))
         """
+        self.models.append(('SVM', SVC()))
+        
         self.scaler = StandardScaler()
         self.X_train = self.scaler.fit_transform(self.X_train)
 
@@ -81,7 +83,9 @@ class DataAnalysis:
 
         #DF_drop_values['Pred'] = Y_pred
         #print(DF_drop_values)
-        Y_pred_proba = self.model.predict_proba(X_test)
+        
+        #Y_pred_proba = self.model.predict_proba(X_test)
+        
         #print("Y_pred: \n",Y_pred)
         #print("Y_pred_proba: \n",Y_pred_proba)
 
@@ -129,7 +133,7 @@ class DataAnalysis:
                 attack_detect_delay[simulation_index] = 0
             #exit()
         print("------------- ",attack," (TOT_SIM: ",_simulations,") -------------")
-        print("ad: ",attack_detect_delay)
+        #print("ad: ",attack_detect_delay)
         print("DETECTION")
         print("  attack_detect: ",attack_detect, " ({:.2f}%)".format(100 * attack_detect/_simulations), 
                 " false_positive: ", fake_detect, " ({:.2f}%)".format(100 * fake_detect/_simulations),
@@ -143,16 +147,16 @@ if __name__ == "__main__":
     train_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
     test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Test/"
     scenario = "Random" #Constant
-    w_radar = False
+    w_radar = True
     #NoAttack
-    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-    #               "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+                   "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     analyzer = DataAnalysis(train_path,test_path,AllAttacks, w_radar)
 
     for name, model in analyzer.get_Models():
-        print("-----------------------",name,"-------------------------")
+        print("--------------------------------------------",name,"-------------------------------------")
         analyzer.apply_model(model)
 
         for _attack_index, attack in enumerate(AllAttacks):

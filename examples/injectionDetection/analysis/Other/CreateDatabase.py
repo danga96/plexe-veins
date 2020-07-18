@@ -65,7 +65,7 @@ class InjectionDetectionAnalyzer:
             "radar-speed": _get_sensor_error("*.node[*].sensors[9].absoluteError", default=0.1),
         }
 
-        self.vehicles = 8
+        self.vehicles = 2
 
         self.sampling_times = []
         self.vehicle_data = []
@@ -374,7 +374,7 @@ class CollectDataForAttack:
     def __init__(self, base_path, file_name):
         _path = os.path.join(base_path, file_name)
         #print(_path)
-        self.all_data = pd.read_csv(_path, converters={
+        self.all_data = pd.read_csv(_path, dtype={"name":"string","attrname":"string"} , converters={
             'run': CollectDataForAttack.__parse_run_column,
             'attrvalue': CollectDataForAttack.__parse_attrvalue_column,
             'vectime': CollectDataForAttack.__parse_ndarray,
@@ -419,6 +419,7 @@ if __name__ == "__main__":
     start_time = time.time()
     #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     for _attack_index, attack in enumerate(AllAttacks):
+        print("-----------------------------------------------------------------------------------------------------------",attack)
         DF_test = pd.DataFrame(columns=col_test)
 
         data_object = CollectDataForAttack(base_path, attack)
@@ -434,7 +435,7 @@ if __name__ == "__main__":
             #print("-----------------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, simulation_index, NoInjection)
-            is_train = True if simulation_index < 3 else False
+            is_train = True if simulation_index <3 else False
             stats = analyzer.detection_analyzer(is_train)
 
             if is_train :

@@ -1,0 +1,207 @@
+Train con le simulazioni da 100 a 199 comprese
+Test con le simulazioni da 0 a 99 comprese
+
+
+---------------------------------------------------------------------------- LR -------------------------------------
+[[8761   39]
+ [   0    0]]
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  0  (0.00%)  false_positive:  32  (32.00%)  delay(s):  nan
+[[4044   31]
+ [2086 2639]]
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  27  (27.00%)  delay(s):  1.8
+[[4044   31]
+ [ 388 1447]]
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  27  (27.00%)  delay(s):  3.67
+[[4044   31]
+ [ 944 1431]]
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  27  (27.00%)  delay(s):  4.13
+[[4044   31]
+ [ 105 1073]]
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  27  (27.00%)  delay(s):  1.58
+[[4044   31]
+ [ 269  840]]
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  27  (27.00%)  delay(s):  3.19
+---------------------------------------------------------------------------- LDA -------------------------------------
+[[8800]]
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  0  (0.00%)  false_positive:  0  (0.00%)  delay(s):  nan
+[[4075    0]
+ [2960 1765]]
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  0  (0.00%)  delay(s):  4.28
+[[4075    0]
+ [1003  832]]
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  98  (98.00%)  false_positive:  0  (0.00%)  delay(s):  8.32
+[[4075    0]
+ [1573  802]]
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  96  (96.00%)  false_positive:  0  (0.00%)  delay(s):  7.68
+[[4075    0]
+ [ 217  961]]
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  0  (0.00%)  delay(s):  2.7
+[[4075    0]
+ [ 444  665]]
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  0  (0.00%)  delay(s):  4.97
+---------------------------------------------------------------------------- KNN -------------------------------------
+[[8291  509]
+ [   0    0]]
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  0  (0.00%)  false_positive:  98  (98.00%)  delay(s):  nan
+[[3897  178]
+ [1814 2911]]
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  79  (79.00%)  delay(s):  1.26
+[[3897  178]
+ [ 221 1614]]
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  79  (79.00%)  delay(s):  1.8
+[[3897  178]
+ [ 732 1643]]
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  79  (79.00%)  delay(s):  2.44
+[[3897  178]
+ [  70 1108]]
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  79  (79.00%)  delay(s):  1.22
+[[3897  178]
+ [ 195  914]]
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  79  (79.00%)  delay(s):  2.24
+---------------------------------------------------------------------------- CART -------------------------------------
+[[6859 1941]
+ [   0    0]]
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  0  (0.00%)  false_positive:  100  (100.00%)  delay(s):  nan
+[[3200  875]
+ [1315 3410]]
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  99  (99.00%)  delay(s):  1.06
+[[3200  875]
+ [ 166 1669]]
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  99  (99.00%)  delay(s):  1.45
+[[3200  875]
+ [ 538 1837]]
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  99  (99.00%)  delay(s):  1.83
+[[3200  875]
+ [  61 1117]]
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  99  (99.00%)  delay(s):  1.14
+[[3200  875]
+ [ 163  946]]
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  99  (99.00%)  delay(s):  1.91
+---------------------------------------------------------------------------- NB -------------------------------------
+[[8657  143]
+ [   0    0]]
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  0  (0.00%)  false_positive:  84  (84.00%)  delay(s):  nan
+[[3950  125]
+ [2169 2556]]
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  84  (84.00%)  delay(s):  1.57
+[[3950  125]
+ [ 358 1477]]
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  84  (84.00%)  delay(s):  3.11
+[[3950  125]
+ [ 907 1468]]
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  84  (84.00%)  delay(s):  3.35
+[[3950  125]
+ [  85 1093]]
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  84  (84.00%)  delay(s):  1.38
+[[3950  125]
+ [ 266  843]]
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  84  (84.00%)  delay(s):  3.15
+--- 10.247415542602539 s ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------- SVM -------------------------------------
+[[8780   20]
+ [   0    0]]
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  0  (0.00%)  false_positive:  16  (16.00%)  delay(s):  nan
+[[4065   10]
+ [2098 2627]]
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  9  (9.00%)  delay(s):  1.38
+[[4065   10]
+ [ 304 1531]]
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  9  (9.00%)  delay(s):  2.37
+[[4065   10]
+ [ 880 1495]]
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  9  (9.00%)  delay(s):  3.1
+[[4065   10]
+ [  79 1099]]
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  9  (9.00%)  delay(s):  1.32
+[[4065   10]
+ [ 268  841]]
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+DETECTION
+  attack_detect:  100  (100.00%)  false_positive:  9  (9.00%)  delay(s):  3.15
+--- 32.29250764846802 s ---

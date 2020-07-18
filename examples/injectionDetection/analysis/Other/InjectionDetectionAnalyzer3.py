@@ -5,6 +5,7 @@ import csv
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 summary_detect = []
 best_alpha_sims = []
@@ -40,7 +41,7 @@ class KalmanFilter:
 
 class InjectionDetectionAnalyzer:
 
-    def __init__(self, data, detection_parameters, simulation_index, use_prediction=False):
+    def __init__(self, data, detection_parameters, simulation_index, NoInjection_case, use_prediction=False):
 
         self.data = data
         self.simulation_index = simulation_index
@@ -59,7 +60,7 @@ class InjectionDetectionAnalyzer:
             "radar-speed": _get_sensor_error("*.node[*].sensors[9].absoluteError", default=0.1),
         }
 
-        self.vehicles = 8
+        self.vehicles = 2
         self.detection_parameters = detection_parameters
 
         self.sampling_times = []
@@ -150,7 +151,7 @@ class InjectionDetectionAnalyzer:
             "vehicle-length": 4,  # meters
         }
 
-        if self.attack_start_vector[0]:
+        if not NoInjection_case and self.attack_start_vector[0]:
             self.attack_start = self.attack_start_vector[0]
         else:
             self.attack_start = None
@@ -305,37 +306,49 @@ class InjectionDetectionAnalyzer:
 
         print("index",_index," value",sampling_times[_index])
          """
-
-        _best_detect = 100#TODO forse non serve
-        _best_alpha = 1#TODO con orignale, invece di 1
-        _attack_detected_original = InjectionDetectionAnalyzer.__compute_attack_start(sampling_times, values, thresholds, attack_tolerance)
-        if _attack_detected_original is None:
+        if attack_start is not None :
+            _best_detect = 100#TODO forse non serve
+            _best_alpha = 1#TODO con orignale, invece di 1
+            _attack_detected_original = InjectionDetectionAnalyzer.__compute_attack_start(sampling_times, values, thresholds, attack_tolerance)
+            if _attack_detected_original is None:
+                _attack_detected_original = 100
+            for _i in range(0,len(sampling_times)):
+                #print("threshold",thresholds[_i]," values",values[_i]," sampl",sampling_times[_i]," kf_pos_std",_kf_position_std[_i])
+                #th_test = self._get_alpha_test(_eq,_i,values, thresholds)
+                alpha_test = round(abs(values[_i]/(thresholds[_i]/self.alpha_parameters[_eq])),4)
+                #print("new_th",alpha_test)
+                #thresholds_test = self._set_th(_eq,alpha_test, thresholds)
+                thresholds_test = alpha_test * (thresholds/self.alpha_parameters[_eq])
+                #thresholds_beta = self._set_th_beta(_eq,alpha_test, thresholds)
+                #if  np.array_equal(thresholds_test,thresholds_beta) is False :
+                    #print(np.setdiff1d(thresholds_beta, thresholds_test))
+                    #print("eq",_eq," _i",_i)
+                    #exit()
+                _attack_detected_test = InjectionDetectionAnalyzer.__compute_attack_start(sampling_times, values, thresholds_test, attack_tolerance)
+                #print("det:",_attack_detected," nth:",alpha_test, " i:",_i)
+                if _attack_detected_test is None:
+                    _attack_detected_test = 0
+                if _attack_detected_test>attack_start and _attack_detected_test<_attack_detected_original:
+                    #se attack_detected_orignal è 100, vuol dire che sono riuscito a rilevare un attacco che con la vecchia soglia non veniva rilevato
+                    if _attack_detected_test<_best_detect or alpha_test<_best_alpha:
+                        _best_detect = _attack_detected_test
+                        _best_alpha = alpha_test
+                        #print("new_alpha_test",alpha_test)
+                    #break
+        else:
+            _best_detect = 100
+            _best_alpha = 1
             _attack_detected_original = 100
-        for _i in range(0,len(sampling_times)):
-            #print("threshold",thresholds[_i]," values",values[_i]," sampl",sampling_times[_i]," kf_pos_std",_kf_position_std[_i])
-            #th_test = self._get_alpha_test(_eq,_i,values, thresholds)
-            alpha_test = round(abs(values[_i]/(thresholds[_i]/self.alpha_parameters[_eq])),4)
-            #print("new_th",alpha_test)
-            #thresholds_test = self._set_th(_eq,alpha_test, thresholds)
-            thresholds_test = alpha_test * (thresholds/self.alpha_parameters[_eq])
-            #thresholds_beta = self._set_th_beta(_eq,alpha_test, thresholds)
-            #if  np.array_equal(thresholds_test,thresholds_beta) is False :
-                #print(np.setdiff1d(thresholds_beta, thresholds_test))
-                #print("eq",_eq," _i",_i)
-                #exit()
-            _attack_detected_test = InjectionDetectionAnalyzer.__compute_attack_start(sampling_times, values, thresholds_test, attack_tolerance)
-            #print("det:",_attack_detected," nth:",alpha_test, " i:",_i)
-            if _attack_detected_test is None:
-                _attack_detected_test = 0
-            if _attack_detected_test>attack_start and _attack_detected_test<_attack_detected_original:
-                #se attack_detected_orignal è 100, vuol dire che sono riuscito a rilevare un attacco che con la vecchia soglia non veniva rilevato
-                if _attack_detected_test<_best_detect or alpha_test<_best_alpha:
-                    _best_detect = _attack_detected_test
+            #print("EQ:",_eq, "VAL:",np.amax(np.round(np.abs(values[10:]),2)))
+            for _i in range(0,len(sampling_times)):
+                alpha_test = round(abs(values[_i]/(thresholds[_i]/self.alpha_parameters[_eq])),4)
+                thresholds_test = alpha_test * (thresholds/self.alpha_parameters[_eq])
+                _attack_detected_test = InjectionDetectionAnalyzer.__compute_attack_start(sampling_times, values, thresholds_test, attack_tolerance)
+                if _attack_detected_test is None and alpha_test<_best_alpha:
                     _best_alpha = alpha_test
-                    #print("new_alpha_test",alpha_test)
-                #break
-        
-        print("best detect ",_best_detect, " best th:",_best_alpha)
+
+        #print("best detect ",_best_detect, " best th:",_best_alpha)
+
         #print("simulation index",self.simulation_index, "   eq",_eq)
         best_alpha_sims[self.simulation_index+1][_eq-1] = round(_best_alpha,4)
         summary_detect[self.simulation_index][_eq-1] = str(round(_attack_detected_original,2))+"|"+str(round(_best_detect,2))
@@ -456,12 +469,15 @@ class CollectDataForAttack:
     def __init__(self, base_path, file_name):
         _path = os.path.join(base_path, file_name)
         #print(_path)
-        self.all_data = pd.read_csv(_path, converters={
+        #self.all_data = pd.read_csv(_path , converters={
+        self.all_data = pd.read_csv(_path, dtype={"name":"string","attrname":"string"} , converters={
             'run': CollectDataForAttack.__parse_run_column,
             'attrvalue': CollectDataForAttack.__parse_attrvalue_column,
             'vectime': CollectDataForAttack.__parse_ndarray,
             'vecvalue': CollectDataForAttack.__parse_ndarray})
-        
+        #print("INFO: \n\n",self.all_data.info(),"\n\n")
+
+
     def get_data(self):
         return self.all_data
 
@@ -524,17 +540,18 @@ if __name__ == "__main__":
     # base_path = os.path.join(base_path, controller)
     
     #NoAttack
-    
-    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-    #               "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
-    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    start_time = time.time()
+    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
+                   "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}NoInjection.csv".format(scenario)]
     best_alpha_attacks = np.zeros( (len(AllAttacks), 7) )
     for _attack_index, attack in enumerate(AllAttacks):
+        print("---------------------------------------------------------------------------------------------------",attack)
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                 #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[:100]
+        sim_lists = sorted(test_data.run.unique())[100:]
         _simulations = len(sim_lists)
 
         summary_detect = [ [ " " for c in range( 8 ) ] 
@@ -551,10 +568,13 @@ if __name__ == "__main__":
        
         
         row_sim = []
+
+        NoInjection = "NoInjection" in attack
+
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            print("-----------------------------------------------------------------------------------------------------------",simulation)
+            #print("---------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
-            analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)
+            analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index, NoInjection)
             analyzer.detection_analyzer()
             row_sim.append("Sim{}".format(simulation_index))
             #simulation_index += 1
@@ -574,7 +594,7 @@ if __name__ == "__main__":
         #max_value =  best_alpha_sims_DF.loc(1:2,[columns]).max(axis=0)
         print("Max value:\n", max_value)
         best_alpha_attacks[_attack_index] = max_value
-        
+        print("HERE")
         f1, ax1 = plt.subplots(2,1)
         f1.canvas.set_window_title(attack)
         f1.suptitle(attack)
@@ -612,6 +632,6 @@ if __name__ == "__main__":
     best_alpha_attacks_DF = pd.DataFrame(data=best_alpha_attacks, index=AllAttacks, columns=columns)
     maxs =  best_alpha_attacks_DF[columns].max(axis=0)
     print("MAXXS\n",maxs)
-    plt.show()
-    
+    #plt.show()
+    print("--- %s s ---" % ((time.time() - start_time)))
     exit()   

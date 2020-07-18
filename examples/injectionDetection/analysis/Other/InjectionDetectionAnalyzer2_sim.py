@@ -425,7 +425,20 @@ if __name__ == "__main__":
     detection_parameters = {
         "runningAvgWindow": 10,#paper 10
         "attackTolerance": 10,#paper 10
+        
+        "distanceKFThresholdFactor": 0.0749,#paper 0.33
+        "distanceV2XKFThresholdFactor": 0.4427,#paper 1
+        "speedV2XKFThresholdFactor": 0.3223,#paper 1
+        
+        "distanceRadarThresholdFactor": 0.057,#0.20 - paper 0.25
+        "distanceRadarKFThresholdFactor": 0.3516,#1.5 - paper 1  
+        "speedRadarV2XThresholdFactor": 0.2156,#paper 1
+        "speedRadarKFThresholdFactor": 0.2888,#paper 1
 
+        "accelerationFactor": 0.05#paper 0.05
+    }
+    #print(detection_parameters)
+    """ #ORGINAL
         "distanceKFThresholdFactor": 0.33,#paper 0.33
         "distanceRadarThresholdFactor": 0.25,#0.20 - paper 0.25
         "distanceV2XKFThresholdFactor": 1,#paper 1
@@ -434,22 +447,19 @@ if __name__ == "__main__":
         "speedV2XKFThresholdFactor": 1,#paper 1
         "speedRadarV2XThresholdFactor": 1,#paper 1
         "speedRadarKFThresholdFactor": 1,#paper 1
-
-        "accelerationFactor": 0.05#paper 0.05
-    }
-    #print(detection_parameters)
+    """
     """ for key, value in detection_parameters.items():
         print("key ",key," value", value) """
    # base_path = os.path.join(base_path, controller)
     #NoAttack
-    _simulation = 4
+    _simulation = 3
     analyzers = {
-        #"NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
+        "NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"PositionInjection": InjectionDetectionAnalyzer(base_path, "{}PositionInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"SpeedInjection": InjectionDetectionAnalyzer(base_path, "{}SpeedInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"AccelerationInjection": InjectionDetectionAnalyzer(base_path, "{}AccelerationInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"AllInjection": InjectionDetectionAnalyzer(base_path, "{}AllInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        "CoordinatedInjection": InjectionDetectionAnalyzer(base_path, "{}CoordinatedInjection.csv".format(scenario), detection_parameters, simulation=_simulation)
+        #"CoordinatedInjection": InjectionDetectionAnalyzer(base_path, "{}CoordinatedInjection.csv".format(scenario), detection_parameters, simulation=_simulation)
     }
 
     f1, ax1 = plt.subplots(len(analyzers), 1, sharex="all", num="{} Scenario - {} - Attack detection".format(scenario, controller))

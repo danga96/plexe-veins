@@ -1,0 +1,45 @@
+Valori ottimali delle soglie ottenute dall'analisi delle simulazioni dalla 100 alla 200 comprese
+
+KF distance          0.1276 -> 0.13
+V2X-KF distance      0.8235 -> 0.83
+V2X-KF speed         0.8397 -> 0.84
+Radar distance       0.1100 -> 0.11
+Radar-KF distance    0.8346 -> 0.84
+Radar-V2X speed      0.7142 -> 0.72
+Radar-KF speed       0.9640 -> 0.97
+
+--- 355.6304214000702 s --
+
+Risultati ottenuti con le soglie SOPRA CALCOLATE usando le simulazioni dalla 0 alla 99 comprese
+
+-------------  RandomNoInjection.csv  (TOT_SIM:  100 ) -------------
+PREDECESSOR (w radar)
+  attack_detect:  0  (0.00%)  false_positive:  1  (1.00%)  delay(s):  nan
+LEADER (w/o radar)
+  attack_detect:  0  (0.00%)  false_positive:  1  (1.00%)  delay(s):  nan
+-------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) -------------
+PREDECESSOR (w radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  1.66
+LEADER (w/o radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  1.66
+-------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) -------------
+PREDECESSOR (w radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  2.54
+LEADER (w/o radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  2.55
+-------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------
+PREDECESSOR (w radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  3.53
+LEADER (w/o radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  3.54
+-------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------
+PREDECESSOR (w radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  1.67
+LEADER (w/o radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  1.67
+-------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------
+PREDECESSOR (w radar)
+  attack_detect:  100  (100.00%)  false_positive:  1  (1.00%)  delay(s):  3.42
+LEADER (w/o radar)
+  attack_detect:  93  (93.00%)  false_positive:  1  (1.00%)  delay(s):  7.32
+--- 299.80001282691956 s ---

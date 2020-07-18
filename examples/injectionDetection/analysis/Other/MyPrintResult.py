@@ -5,6 +5,7 @@ import csv
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 
 leader_attack_detect = 0
@@ -45,7 +46,7 @@ class KalmanFilter:
 
 class InjectionDetectionAnalyzer:
 
-    def __init__(self, data, detection_parameters, simulation_index, use_prediction=False):
+    def __init__(self, data, detection_parameters, simulation_index, NoInjection_case, use_prediction=False):
 
         self.data = data
         self.simulation_index = simulation_index
@@ -64,7 +65,7 @@ class InjectionDetectionAnalyzer:
             "radar-speed": _get_sensor_error("*.node[*].sensors[9].absoluteError", default=0.1),
         }
 
-        self.vehicles = 8
+        self.vehicles = 2
         self.detection_parameters = detection_parameters
 
         self.sampling_times = []
@@ -155,7 +156,7 @@ class InjectionDetectionAnalyzer:
             "vehicle-length": 4,  # meters
         }
 
-        if self.attack_start_vector[0]:
+        if not NoInjection_case and self.attack_start_vector[0]:
             self.attack_start = self.attack_start_vector[0]
         else:
             self.attack_start = None
@@ -403,7 +404,7 @@ class CollectDataForAttack:
     def __init__(self, base_path, file_name):
         _path = os.path.join(base_path, file_name)
         #print(_path)
-        self.all_data = pd.read_csv(_path, converters={
+        self.all_data = pd.read_csv(_path, dtype={"name":"string","attrname":"string"} , converters={
             'run': CollectDataForAttack.__parse_run_column,
             'attrvalue': CollectDataForAttack.__parse_attrvalue_column,
             'vectime': CollectDataForAttack.__parse_ndarray,
@@ -444,6 +445,18 @@ if __name__ == "__main__":
         "runningAvgWindow": 10,#paper 10
         "attackTolerance": 10,#paper 10
 
+        "distanceKFThresholdFactor": 0.13,#paper 0.33
+        "distanceV2XKFThresholdFactor": 0.83,#paper 1
+        "speedV2XKFThresholdFactor": 0.84,#paper 1
+
+        "distanceRadarThresholdFactor": 0.11,#0.20 - paper 0.25
+        "distanceRadarKFThresholdFactor": 0.84,#1.5 - paper 1  
+        "speedRadarV2XThresholdFactor": 0.72,#paper 1
+        "speedRadarKFThresholdFactor": 0.97,#paper 1
+
+        "accelerationFactor": 0.05#paper 0.05
+    }
+    """ #ORGINAL
         "distanceKFThresholdFactor": 0.33,#paper 0.33
         "distanceRadarThresholdFactor": 0.25,#0.20 - paper 0.25
         "distanceV2XKFThresholdFactor": 1,#paper 1
@@ -452,24 +465,23 @@ if __name__ == "__main__":
         "speedV2XKFThresholdFactor": 1,#paper 1
         "speedRadarV2XThresholdFactor": 1,#paper 1
         "speedRadarKFThresholdFactor": 1,#paper 1
-
-        "accelerationFactor": 0.05#paper 0.05
-    }
+    """
     #print(detection_parameters)
     """ for key, value in detection_parameters.items():
         print("key ",key," value", value) """
     # base_path = os.path.join(base_path, controller)
-    
+    start_time = time.time()
     #NoAttack
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
-    #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}NoInjection.csv".format(scenario)]
     for _attack_index, attack in enumerate(AllAttacks):
+        #print("---------------------------------------------------------------------------------------------------",attack)
         data_object = CollectDataForAttack(base_path, attack)
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                 #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[:100]
+        sim_lists = sorted(test_data.run.unique())[0:100]
 
         _simulations = len(sim_lists)
         leader_attack_detect = 0
@@ -477,18 +489,18 @@ if __name__ == "__main__":
         leader_attack_detect_delay = np.zeros( _simulations )
         predecessor_attack_detect_delay = np.zeros( _simulations )
         attack_detect = np.zeros( 7 )        
-
+        NoInjection = "NoInjection" in attack
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            #print("-----------------------------------------------------------------------------------------------------------",simulation)
+            #print("---------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
-            analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index)
+            analyzer = InjectionDetectionAnalyzer(data, detection_parameters, simulation_index, NoInjection)
             analyzer.detection_analyzer()
             #simulation_index += 1
         
 
         print("------------- ",attack," (TOT_SIM: ",_simulations,") -------------")
-        print("pad: ",predecessor_attack_detect_delay)
-        print("lad: ",leader_attack_detect_delay)
+        #print("pad: ",predecessor_attack_detect_delay)
+        #print("lad: ",leader_attack_detect_delay)
         print("PREDECESSOR (w radar)")
         print("  attack_detect: ",predecessor_attack_detect, " ({:.2f}%)".format(100 * predecessor_attack_detect/_simulations), 
                 " false_positive: ", predecessor_fake_detect, " ({:.2f}%)".format(100 * predecessor_fake_detect/_simulations),
@@ -499,5 +511,6 @@ if __name__ == "__main__":
                  " false_positive: ", leader_fake_detect, " ({:.2f}%)".format(100 * leader_fake_detect/_simulations),
                     " delay(s): ", np.nan if len(_remove_negative(leader_attack_detect_delay)) <= 0 else 
                                             round(_remove_negative(leader_attack_detect_delay).mean(),2))
-    
+
+    print("--- %s s ---" % ((time.time() - start_time)))
     exit()  

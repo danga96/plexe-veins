@@ -1,12 +1,12 @@
 Valori ottimali delle soglie ottenute dall'analisi delle simulazioni dalla 100 alla 200 comprese
 
-KF distance          0.1276 -> 0.13
-V2X-KF distance      0.8235 -> 0.83
-V2X-KF speed         0.8397 -> 0.84
-Radar distance       0.1100 -> 0.11
-Radar-KF distance    0.8346 -> 0.84
-Radar-V2X speed      0.7142 -> 0.72
-Radar-KF speed       0.9640 -> 0.97
+KF distance          0.1276 -> 0.13 (0.33)
+V2X-KF distance      0.8235 -> 0.83 (1)
+V2X-KF speed         0.8397 -> 0.84 (1)
+Radar distance       0.1100 -> 0.11 (0.25)
+Radar-KF distance    0.8346 -> 0.84 (1)
+Radar-V2X speed      0.7142 -> 0.72 (1)
+Radar-KF speed       0.9640 -> 0.97 (1)
 
 --- 355.6304214000702 s --
 

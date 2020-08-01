@@ -4,6 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.ndimage.filters import gaussian_filter1d
 
 summary_detect = np.zeros( (6, 8) )
 
@@ -299,9 +300,9 @@ class InjectionDetectionAnalyzer:
 
         index = int(''.join(filter(str.isdigit, color)))
         summary_detect[self.attack][index-1] = _attack_detected
-       
+        value_smoothed = gaussian_filter1d(values, sigma=1)
         return [
-            ax.plot(sampling_times, values, color=color, label=label)[0] ,
+            ax.plot(sampling_times, value_smoothed, color=color, label=label)[0] ,
             ax.plot(sampling_times, thresholds, color=color , alpha=0.75, linestyle=":")[0],
             ax.plot(sampling_times, -thresholds, color=color , alpha=0.75, linestyle=":")[0],
             ax.axvline(_attack_detected, color=color , linestyle=":") if _attack_detected is not None else None
@@ -426,14 +427,14 @@ if __name__ == "__main__":
         "runningAvgWindow": 10,#paper 10
         "attackTolerance": 10,#paper 10
         
-        "distanceKFThresholdFactor": 0.0749,#paper 0.33
-        "distanceV2XKFThresholdFactor": 0.4427,#paper 1
-        "speedV2XKFThresholdFactor": 0.3223,#paper 1
+        "distanceKFThresholdFactor": 0.13,#paper 0.33
+        "distanceV2XKFThresholdFactor": 0.83,#paper 1
+        "speedV2XKFThresholdFactor": 0.84,#paper 1
         
-        "distanceRadarThresholdFactor": 0.057,#0.20 - paper 0.25
-        "distanceRadarKFThresholdFactor": 0.3516,#1.5 - paper 1  
-        "speedRadarV2XThresholdFactor": 0.2156,#paper 1
-        "speedRadarKFThresholdFactor": 0.2888,#paper 1
+        "distanceRadarThresholdFactor": 0.11,#0.20 - paper 0.25
+        "distanceRadarKFThresholdFactor": 0.84,#1.5 - paper 1  
+        "speedRadarV2XThresholdFactor": 0.72,#paper 1
+        "speedRadarKFThresholdFactor": 0.97,#paper 1
 
         "accelerationFactor": 0.05#paper 0.05
     }
@@ -452,13 +453,13 @@ if __name__ == "__main__":
         print("key ",key," value", value) """
    # base_path = os.path.join(base_path, controller)
     #NoAttack
-    _simulation = 3
+    _simulation = 1
     analyzers = {
-        "NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
+        #"NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"PositionInjection": InjectionDetectionAnalyzer(base_path, "{}PositionInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"SpeedInjection": InjectionDetectionAnalyzer(base_path, "{}SpeedInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"AccelerationInjection": InjectionDetectionAnalyzer(base_path, "{}AccelerationInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
-        #"AllInjection": InjectionDetectionAnalyzer(base_path, "{}AllInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
+        "AllInjection": InjectionDetectionAnalyzer(base_path, "{}AllInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"CoordinatedInjection": InjectionDetectionAnalyzer(base_path, "{}CoordinatedInjection.csv".format(scenario), detection_parameters, simulation=_simulation)
     }
 

@@ -17,6 +17,12 @@ top_words = 5000
 max_review_length = 500
 X_train = sequence.pad_sequences(X_train, maxlen=max_review_length)
 X_test = sequence.pad_sequences(X_test, maxlen=max_review_length)
+
+print("X_train shape:",X_train.shape)
+print("X_test shape:",X_test.shape)
+print("y_train shape:",y_train.shape)
+print("y_test shape:",y_test.shape)
+exit()
 # create the model
 embedding_vecor_length = 32
 model = Sequential()

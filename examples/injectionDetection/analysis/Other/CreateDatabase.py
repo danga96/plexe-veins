@@ -435,7 +435,7 @@ if __name__ == "__main__":
             #print("-----------------------------------------------------------------------------------------------------------",simulation)
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, simulation_index, NoInjection)
-            is_train = True if simulation_index <3 else False
+            is_train = True if simulation_index <100 else False#minore di N :vuol dire che i primi N sono di train
             stats = analyzer.detection_analyzer(is_train)
 
             if is_train :

@@ -39,7 +39,7 @@ class DataAnalysis:
             self.Y_test[attack] = self.DF_test_collection[attack]['Detection'].values
 
         self.models = []
-        """
+        
         self.models.append(('LR', LogisticRegression()))
 
         self.models.append(('LDA', LinearDiscriminantAnalysis()))
@@ -47,7 +47,7 @@ class DataAnalysis:
         
         self.models.append(('CART', DecisionTreeClassifier()))
         self.models.append(('NB', GaussianNB()))
-        """
+        
         self.models.append(('SVM', SVC()))
         
         self.scaler = StandardScaler()
@@ -114,12 +114,15 @@ class DataAnalysis:
         """
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
             #print("-----------------------------------------------------------------------------------------------------------",simulation)
+            #print("--------",simulation, end="\r", flush=True)
             data = grouped.get_group(simulation)
+            flag_fake_detect = False
             #print(data,"\n\n\n\n")
             early_detect = np.where(data['Pred']>data['Detection'])[0]
             if len(early_detect)>0:
                 #print(data.iloc[early_detect[0]]['Start'])
                 fake_detect += 1
+                flag_fake_detect = True
 
             #TODO: andrebbe un IF per evitare di contare come attacchi rilevati anche i fake attacks
             detection = np.where((data['Pred'].astype(int)&data['Detection'].astype(int))==1)[0]
@@ -131,6 +134,8 @@ class DataAnalysis:
                 attack_detect += 1
             else:
                 attack_detect_delay[simulation_index] = 0
+
+            attack_detect_delay[simulation_index] = -1 if flag_fake_detect else attack_detect_delay[simulation_index]
             #exit()
         print("------------- ",attack," (TOT_SIM: ",_simulations,") -------------")
         #print("ad: ",attack_detect_delay)
@@ -147,7 +152,7 @@ if __name__ == "__main__":
     train_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
     test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Test/"
     scenario = "Random" #Constant
-    w_radar = True
+    w_radar = False
     #NoAttack
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]

@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from pandas import concat
  
-def series_to_supervised(data, n_in=3, n_out=1, dropnan=True):
+def series_to_supervised(data, n_in=9, n_out=1, dropnan=True):
 	"""
 	Frame a time series as a supervised learning dataset.
 	Arguments:
@@ -12,6 +12,7 @@ def series_to_supervised(data, n_in=3, n_out=1, dropnan=True):
 	Returns:
 		Pandas DataFrame of series framed for supervised learning.
 	"""
+	print(type(data),data)
 	n_vars = 1 if type(data) is list else data.shape[1]
 	df = DataFrame(data)
 	cols, names = list(), list()
@@ -37,7 +38,8 @@ def series_to_supervised(data, n_in=3, n_out=1, dropnan=True):
  
 raw = DataFrame()
 raw['ob1'] = [x for x in range(10)]
-raw['ob2'] = [x for x in range(50, 60)]
+#raw['ob2'] = [x for x in range(50, 60)]
+print(raw)
 values = raw.values
 print(values)
 data = series_to_supervised(values)

@@ -13,6 +13,10 @@ from keras import optimizers
 #from keras.optimizers import SGD
 #from keras.optimizers import Adam
 # Function to create model, required for KerasClassifier
+import os
+
+os.system("taskset -p -c 0 %d" % os.getpid())
+
 start_time = time.time()
 def _get_optimizer(_optimizer, learn_rate, momentum):
     #optimizer = [ 'SGD', 'RMSprop', 'Adagrad', 'Adadelta', 'Adam', 'Adamax', 'Nadam']

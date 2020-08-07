@@ -25,7 +25,10 @@ np.random.seed(7)
 csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
 attacks = pd.read_csv(csv_path)
 #X = attacks.drop(attacks.columns[[3,4,5,6,-1]], axis=1).values
+#KF distance,V2X-KF distance,V2X-KF speed,Radar distance,Radar-KF distance,Radar-V2X speed,Radar-KF speed,Detection
 X = attacks.drop(['Detection'], axis=1).values
+#X = attacks.drop(attacks.columns[[1,2,5,6,-1]], axis=1).values
+
 Y = attacks["Detection"].values
 
 
@@ -67,7 +70,7 @@ model.add(Dense(10, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(model.summary())
-history = model.fit(X_train, y_train, epochs=3, batch_size=64, validation_split=0)
+history = model.fit(X_train, y_train, epochs=3, batch_size=64, validation_split=0.1)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=1)
 print("Accuracy: %.2f%%" % (scores[1]*100))

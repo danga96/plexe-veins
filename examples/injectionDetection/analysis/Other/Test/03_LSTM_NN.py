@@ -1,3 +1,5 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import numpy as np
 import pandas as pd
@@ -24,7 +26,7 @@ tf.random.set_seed(2)
 np.random.seed(7)
 
 
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
+csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/KFdistance.csv"
 attacks = pd.read_csv(csv_path)
 #X = attacks.drop(attacks.columns[[3,4,5,6,-1]], axis=1).values
 X = attacks.drop(['Detection'], axis=1).values
@@ -32,18 +34,10 @@ Y = attacks["Detection"].values
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.3, shuffle=True)
-scaler = MinMaxScaler()
+scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-"""
-np.set_printoptions(threshold=np.inf)
-print(X_train,"\n\n")
-X_train = sequence.pad_sequences(X_train, maxlen=max_review_length)
-print(X_train)
-exit()
-X_test = sequence.pad_sequences(X_test, maxlen=max_review_length)
-"""
 # create the model
 #np.set_printoptions(threshold=np.inf)
 
@@ -62,14 +56,17 @@ print("shape_X",X_train.shape,"shape_Y",y_train.shape)
 #####################################################################
 n_timesteps, n_features, n_outputs = X_train.shape[1], X_train.shape[2], y_train.shape[0]
 
-model.add(LSTM(128, input_shape=(7,1), activation='relu', return_sequences=True))
+model.add(LSTM(256, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
 model.add(Dropout(0.2))
 
 model.add(LSTM(128, activation='relu'))
-#model.add(Dropout(0.1))
+model.add(Dropout(0.1))
 
-model.add(Dense(32, activation='relu'))
-model.add(Dropout(0.2))
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.1))
+
+model.add(Dense(64, activation='relu'))
+model.add(Dropout(0.1))
 
 #####################################################################
 """

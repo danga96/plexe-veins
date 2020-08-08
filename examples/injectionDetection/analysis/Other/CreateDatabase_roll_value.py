@@ -13,18 +13,19 @@ from sklearn.preprocessing import StandardScaler
 col_train = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0', 'Detection']
 col_test = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0','Run','Time','Start','Detection']
     
+train_simulation = 500
 
 window = 10
 
 
 class DataTuning:
 
-    def __init__(self, DB_values_path):
+    def __init__(self, DB_values_path, export_path):
         DB_values = pd.read_csv(DB_values_path, converters={
             'time': DataTuning.__parse_ndarray,
             'value': DataTuning.__parse_ndarray
         })
-        print(DB_values)
+        #print(DB_values)
         grouped = DB_values.groupby("attack")
         self.DB_values_train = {}
         self.DB_values_test = {} 
@@ -46,8 +47,13 @@ class DataTuning:
 
             self.split_DB()
 
-            print(attack_data,"\n\n")
-        exit()
+
+        print("SUBFRAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+        for i, name_value in enumerate(self.name_values):
+            print("----------------DF TO EXPORT-----------------",name_value)
+            self.DB_values_train[name_value].to_csv(export_path+name_value+'.csv',index=False, header=True)
+            #print(self.DB_values_train[name_value],"\n\n\n")
+       
 
 
     @staticmethod
@@ -57,7 +63,7 @@ class DataTuning:
 
 
     def split_DB(self):
-        
+        global train_simulation
         grouped = self.attack_data.groupby("run")
                                                #Range [start:stop] -> [start,stop)
         sim_lists = sorted(self.attack_data.run.unique())
@@ -66,11 +72,11 @@ class DataTuning:
        
 
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            #print("-----------------------------------------------------------------------------------------------------------",simulation)
+            print("------------------------------------------------------------------------------------------",simulation, end='\r')
             self.simulation_index = simulation_index
             self.simulation_data = grouped.get_group(simulation)
-            is_train = True if simulation_index <100 else False#minore di N :vuol dire che i primi N sono di train
-            stats = self.split_and_tuning(is_train)
+            is_train = True if simulation_index < train_simulation else False#minore di N :vuol dire che i primi N sono di train
+            self.split_and_tuning(is_train)
 
 
         return None
@@ -78,9 +84,10 @@ class DataTuning:
     def split_and_tuning(self, is_train):
         global window
         self.attack_start = self.simulation_data['start'].iloc[0]
-        print("SIMULATION\n",self.simulation_data)
+        #print("SIMULATION\n",self.simulation_data)
         #sampling_times = np.fromstring(self.simulation_data['time'].iloc[0].str.get(0), sep=' ')
-        print(self.simulation_data['time'], len(self.simulation_data['time']), type(self.simulation_data['time'].iloc[0]))
+
+        #print(self.simulation_data['time'], len(self.simulation_data['time']), type(self.simulation_data['time'].iloc[0]))
         
         """
         sampling_times =  self.simulation_data['time'].apply(lambda x: x.replace('[','').replace(']',''))
@@ -88,25 +95,25 @@ class DataTuning:
         """
         #sampling_times = self.simulation_data['time'].loc['V2XKFspeed']
         sampling_times = self.simulation_data.loc[self.simulation_data.name_value == 'V2XKFspeed','time'].values[0]
-        print(sampling_times)
+        #print(sampling_times)
 
         for i, name_value in enumerate(self.name_values):# per ogni valore
             DF_temp_train = pd.DataFrame(columns=col_train)
             DF_temp_test = pd.DataFrame(columns=col_test)
-            print("\n\n",self.simulation_data['value'].iloc[i])
-            print("LEN:",len((self.simulation_data['value'].iloc[i])),"\n\n")
+            #print("\n\n",self.simulation_data['value'].iloc[i])
+            #print("LEN:",len((self.simulation_data['value'].iloc[i])),"\n\n")
             data = self.simulation_data.loc[self.simulation_data.name_value == name_value,'value'].values[0]
             #data = self.simulation_data['value'].iloc[i]
             data_re = data.reshape(len(data),1)
 
-            print(data_re.shape,len(data_re),type(data_re))
+            #print(data_re.shape,len(data_re),type(data_re))
             #exit()
             data_supervised = self.series_to_supervised(data.reshape(len(data),1),n_in=window-1)
-            print(data_supervised)
+            #print(data_supervised)
             
             DF_temp_train = DF_temp_train.append(data_supervised, ignore_index = True)
             target_col = self._set_target_col(sampling_times,window)
-            print("LEN_target_col",len(target_col))            
+            #print("LEN_target_col",len(target_col))            
             DF_temp_train[DF_temp_train.columns[-1]] = target_col
             if is_train is False:
                 DF_temp_test = DF_temp_test.append(DF_temp_train, ignore_index = True)
@@ -115,16 +122,13 @@ class DataTuning:
                 DF_temp_test['Start'] = self.attack_start if self.attack_start is not None else 0
                 DF_temp_test['Run'] = self.simulation_index
 
-            print(DF_temp_train)
+            #print(DF_temp_train)
             #TODO controllo se trai o no, e memorizzarlo nel DB giusto
             self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
         
         #TODO creare una cartella per ogni attacco, e mettere i valori in CSV diversi
         # dopodichè creare la cartella train, e mettere i  valori in CSV diversi
-        print("SUBFRAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-        for i, name_value in enumerate(self.name_values):
-            print(self.DB_values_train[name_value],"\n\n\n")
-        exit()
+        
 
     def series_to_supervised(self, data, n_in=9, n_out=1, dropnan=True):
         """
@@ -172,10 +176,10 @@ class DataTuning:
         if attack_start == 0:
             return target_array
 
-        print("type: ",type(sampling_times), " len: ",len(sampling_times), " attack_start: ", attack_start)
+        #print("type: ",type(sampling_times), " len: ",len(sampling_times), " attack_start: ", attack_start)
         #print("sample", sampling_times)
     
-        print("MODULO",attack_start/0.1)
+        #print("MODULO",attack_start/0.1)
         direct_index = int(attack_start/0.1-10)
         direct_index -= 1 if sampling_times[direct_index]-attack_start > 0.1 else 0
         """#INDICE ACCESSO DIRETTO MANUALE
@@ -187,63 +191,25 @@ class DataTuning:
         print("index",_index," value",sampling_times[_index])
         """
 
-        print("direct",direct_index, "value direct:",sampling_times[direct_index])
-        print("difference: ",sampling_times[direct_index]-attack_start)
+        #print("direct",direct_index, "value direct:",sampling_times[direct_index])
+        #print("difference: ",sampling_times[direct_index]-attack_start)
         start = direct_index-window+1
         
         target_array[start:] = 1
-        print ("START: ", start, " END: ", len(target_array), " LAST: ", target_array[-1])
+        #print ("START: ", start, " END: ", len(target_array), " LAST: ", target_array[-1])
 
         return target_array
 
 
 if __name__ == "__main__":
     DB_values_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB_values.csv"
+    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/"
     scenario = "Random" #Constant
     controller = "CACC" #Test
-    data_tuning = DataTuning(DB_values_path)
-    # base_path = os.path.join(base_path, controller)
-    DF_train = pd.DataFrame(columns=col_train)
-    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/"
-    #NoAttack
-    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
-                   "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
-    for _attack_index, attack in enumerate(AllAttacks):
-        print("-----------------------------------------------------------------------------------------------------------",attack)
-        DF_test = pd.DataFrame(columns=col_test)
-
-        data_object = CollectDataForAttack(base_path, attack)
-        test_data = data_object.get_data()
-        grouped = test_data.groupby("run")
-                                               #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())
-        _simulations = len(sim_lists)
-
-        NoInjection = "NoInjection" in attack
-
-        for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            #print("-----------------------------------------------------------------------------------------------------------",simulation)
-            data = grouped.get_group(simulation)
-            analyzer = InjectionDetectionAnalyzer(data, simulation_index, NoInjection)
-            is_train = True if simulation_index <100 else False#minore di N :vuol dire che i primi N sono di train
-            stats = analyzer.detection_analyzer(is_train)
-
-            if is_train :
-                DF_train = DF_train.append(stats, ignore_index = True)
-            else:
-                DF_test = DF_test.append(stats, ignore_index = True)
-
-        print("----------------DF TO EXPORT-----------------\n",DF_test)
-        DF_test.to_csv(export_path+'/Test/'+attack,index=False, header=True)
 
     
-    print("----------------DF TO EXPORT-----------------\n",DF_train)
-    
-    #EXPORT ORIGINAL
-    DF_train.to_csv (export_path+'DB.csv', index = False, header=True)
-
+    data_tuning = DataTuning(DB_values_path,export_path)
 
     print("--- %s s ---" % ((time.time() - start_time)))
 

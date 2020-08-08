@@ -418,7 +418,7 @@ if __name__ == "__main__":
         NoInjection = "NoInjection" in attack
 
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            #print("-----------------------------------------------------------------------------------------------------------",simulation)
+            print("-------------------------------------------------------------------------------------------",simulation, end='\r')
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, simulation_index, NoInjection)
            

@@ -256,8 +256,9 @@ class InjectionDetectionAnalyzer:
         #values_collection = {}
         value_for_sim = pd.DataFrame(columns=col)
         #value_for_sim['value'] = value_for_sim['value'].astype(object)
+        attack = self.attack
         for _eq, _d in enumerate(_data):
-            df_temp = pd.DataFrame({'attack':self.attack, 
+            df_temp = pd.DataFrame({'attack':attack[:-4], 
                             'run':self.simulation_index,
                             'name_value': _d['name'],
                             'time' : [sampling_times],

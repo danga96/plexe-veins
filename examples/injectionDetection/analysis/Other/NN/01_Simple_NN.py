@@ -56,13 +56,16 @@ X_test = sequence.pad_sequences(X_test, maxlen=max_review_length)
 #y_test = np_utils.to_categorical(y_test)
 
 model = Sequential()
-model.add(Dense(512, input_dim = X_train.shape[1], activation='relu', kernel_initializer='glorot_uniform'))
+model.add(Dense(512, input_dim = X_train.shape[1], activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
-model.add(Dense(256, activation='relu', kernel_initializer='glorot_uniform'))
+
+model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
-model.add(Dense(128, activation='relu', kernel_initializer='glorot_uniform'))
+
+model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
-model.add(Dense(64, activation='relu', kernel_initializer='glorot_uniform'))
+
+model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
 """
 model.add(Dense(40, activation='relu'))
@@ -73,11 +76,11 @@ model.add(Dense(20, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(10, activation='relu'))
 """
-model.add(Dense(1, activation='sigmoid', kernel_initializer='glorot_uniform'))
+model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
 _optimizer = optimizers.Adam(learning_rate=0.001)
 model.compile(loss='binary_crossentropy', optimizer=_optimizer, metrics=['accuracy'])
 print(model.summary())
-history = model.fit(X_train, y_train, epochs=30, batch_size=32)
+history = model.fit(X_train, y_train, epochs=10, batch_size=32)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=1)
 print("Accuracy: %.2f%%" % (scores[1]*100))

@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from pandas import concat
  
-def series_to_supervised(data, n_in=9, n_out=1, dropnan=True):
+def series_to_supervised(data, n_in=5, n_out=1, dropnan=True):
 	"""
 	Frame a time series as a supervised learning dataset.
 	Arguments:

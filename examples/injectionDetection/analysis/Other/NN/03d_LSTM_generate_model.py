@@ -3,6 +3,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import numpy as np
 import pandas as pd
+import joblib
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from keras.utils import np_utils
@@ -64,6 +65,8 @@ class GenerateModel:
         X_test = scaler.transform(X_test)
 
         
+        
+        
         X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
 
         X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
@@ -98,6 +101,7 @@ class GenerateModel:
             'matrix':confusion_matrix
         }
         
+        joblib.dump(scaler,"/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/scaler_"+name_value[:-4]+".bin",compress=True)
         model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5")
 
         return scores
@@ -108,8 +112,8 @@ if __name__ == "__main__":
     scenario = "Random" #Constant
 
     #NoAttack
-    #AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv",]
-    AllValues = ["KFdistance.csv",  "Rdistance.csv"]
+    AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv",]
+    #AllValues = ["KFdistance.csv",  "Rdistance.csv"]
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)

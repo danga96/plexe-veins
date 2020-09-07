@@ -11,7 +11,9 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers import LSTM
+from keras.layers import GRU
 from keras.layers import SimpleRNN
+from keras.layers import TimeDistributed
 from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
 from keras.layers.embeddings import Embedding
@@ -26,7 +28,7 @@ tf.random.set_seed(2)
 np.random.seed(7)
 
 
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/KFdistance.csv"
+csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/KFdistance_bi.csv"
 attacks = pd.read_csv(csv_path)
 #X = attacks.drop(attacks.columns[[3,4,5,6,-1]], axis=1).values
 X = attacks.drop(['Detection'], axis=1).values
@@ -55,21 +57,39 @@ print("shape_X",X_train.shape,"shape_Y",y_train.shape)
 #exit()
 #####################################################################
 n_timesteps, n_features, n_outputs = X_train.shape[1], X_train.shape[2], y_train.shape[0]
-
-model.add(LSTM(256, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
-model.add(Dropout(0.2))
+model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
+#model.add(LSTM(128, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
+model.add(Dropout(0.1))
+"""
+model.add(LSTM(256, activation='relu',return_sequences=True))
+model.add(Dropout(0.1))
 
 model.add(LSTM(128, activation='relu',return_sequences=True))
-model.add(Dropout(0.2))
+model.add(Dropout(0.1))
+"""
+"""
+model.add(GRU(128, activation='relu', return_sequences=True))
+model.add(Dropout(0.8))
 
+model.add(LSTM(64, activation='relu', return_sequences=True))
+model.add(Dropout(0.8))
+"""
 model.add(LSTM(64, activation='relu'))
-model.add(Dropout(0.2))
+model.add(Dropout(0.1))
+#model.add(TimeDistributed(Dense(1)))
 
-model.add(Dense(512, activation='relu'))
-model.add(Dropout(0.2))
 
-model.add(Dense(64, activation='relu'))
-model.add(Dropout(0.2))
+model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
+model.add(Dropout(0.1))
+
+model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
+model.add(Dropout(0.1))
+
+model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
+model.add(Dropout(0.1))
+
+model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
+model.add(Dropout(0.1))
 
 #####################################################################
 """
@@ -81,10 +101,10 @@ model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
 """
 
-model.add(Dense(1, activation='sigmoid'))
+model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(model.summary())
-history = model.fit(X_train, y_train, epochs=1, batch_size=64)
+history = model.fit(X_train, y_train, epochs=1, batch_size=32)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=1)
 print("Accuracy: %.2f%%" % (scores[1]*100))

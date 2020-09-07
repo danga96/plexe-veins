@@ -11,12 +11,12 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 
 col_train = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0', 'Detection']
-col_test = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0','Run','Time','Start','Detection']
+col_test = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0','Run','Time','Start','Value','Detection']
     
-train_simulation = 500
+train_simulation = 3
 
 window = 10
-
+#TODO: se si modifica window, occorre modificare anche le colonne di "col_train" e "col_test"
 
 class DataTuning:
 
@@ -33,22 +33,25 @@ class DataTuning:
 
         for i, name_value in enumerate(self.name_values):
             self.DB_values_train[name_value] = pd.DataFrame(columns=col_train)
-            self.DB_values_test[name_value] = pd.DataFrame(columns=col_test)
+            #self.DB_values_test[name_value] = pd.DataFrame(columns=col_test)
 
        
 
         attack_lists = (DB_values.attack.unique())
         _attacks = len(attack_lists)        
 
-        for attack_index, attack in enumerate(attack_lists[1:]):#per ogni attacco
+        for attack_index, attack in enumerate(attack_lists):#per ogni attacco
             print("-----------------------------------------------------------------------------------------------------------",attack)
-            
+            self.DB_values_test = pd.DataFrame(columns=col_test)
             self.attack_data = grouped.get_group(attack)
 
             self.split_DB()
 
+            #print("----------------DF TO EXPORT-----------------",attack)
+            self.DB_values_test.to_csv(export_path+'DB_Test/'+ attack +'.csv',index=False, header=True)
 
-        print("SUBFRAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+
+        print("-------------FRAME VALUE----------------------")
         for i, name_value in enumerate(self.name_values):
             print("----------------DF TO EXPORT-----------------",name_value)
             self.DB_values_train[name_value].to_csv(export_path+name_value+'.csv',index=False, header=True)
@@ -72,7 +75,7 @@ class DataTuning:
        
 
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            print("------------------------------------------------------------------------------------------",simulation, end='\r')
+            print("-------------------------------------------------------------------------------Simulation: ",simulation, end='\r')
             self.simulation_index = simulation_index
             self.simulation_data = grouped.get_group(simulation)
             is_train = True if simulation_index < train_simulation else False#minore di N :vuol dire che i primi N sono di train
@@ -117,14 +120,18 @@ class DataTuning:
             DF_temp_train[DF_temp_train.columns[-1]] = target_col
             if is_train is False:
                 DF_temp_test = DF_temp_test.append(DF_temp_train, ignore_index = True)
-                print(len(sampling_times[window-1:]))
+                #print(len(sampling_times[window-1:]))
                 DF_temp_test.Time = sampling_times[window-1:]
                 DF_temp_test['Start'] = self.attack_start if self.attack_start is not None else 0
                 DF_temp_test['Run'] = self.simulation_index
-
+                DF_temp_test['Value'] = name_value
+                self.DB_values_test = self.DB_values_test.append(DF_temp_test, ignore_index=True)
+            else:
+                self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
             #print(DF_temp_train)
             #TODO controllo se trai o no, e memorizzarlo nel DB giusto
-            self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
+
+            #self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
         
         #TODO creare una cartella per ogni attacco, e mettere i valori in CSV diversi
         # dopodichè creare la cartella train, e mettere i  valori in CSV diversi

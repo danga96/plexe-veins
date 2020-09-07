@@ -176,15 +176,15 @@ if __name__ == "__main__":
     
     #########################(START) test one_by_one###########################################
     #dense_size_candidates = ['256,128,64', '32', '512,256,128,64', '256,128,128,64']
-    dense_size_candidates = ['256,128,64']
-    epochs = [5]
-    batch_size = [16,32]    
+    dense_size_candidates = ['512,256,128,64']
+    epochs = [10]
+    batch_size = [32]    
     # Use scikit-learn to grid search 
-    activation =  ['relu','tanh']
-    learn_rate = [0.001, 0.01]
-    dropout_rate = [0.8]
-    init = ['uniform', 'normal', 'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform']
-    optimizer = [ 'SGD']
+    activation =  ['relu']
+    learn_rate = [0.001]
+    dropout_rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    init = ['uniform']
+    optimizer = [ 'Adam']
     #########################(END) test one_by_one#############################################
     
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     print("CONFIGURATIONS: ",configurations,"\n",configurations.shape)
     time.sleep(2)
     #exit()
-    num_workers = 1
+    num_workers = 4
     params = configurations
 
     pool = multiprocessing.Pool(num_workers, generator.init_worker)

@@ -29,25 +29,11 @@ class DataAnalysis:
         DF_temp = pd.read_csv(test_path+attack_temp)
         self.name_values = (DF_temp.Value.unique())
 
-        print(attack_temp, self.name_values)
+        #print(attack_temp, self.name_values)
 
         for i, name_value in enumerate(self.name_values):
             self.model[name_value] = load_model(model_path+'model_'+name_value+'.h5')
             self.scaler[name_value] = joblib.load(model_path+'scaler_'+name_value+'.bin')
-
-
-    def get_Models(self):
-        return self.models
-
-    def apply_model(self, model):
-        
-        self.model = model
-        #model = LogisticRegression(C=1)        
-
-        self.model.fit(self.X_train,self.Y_train)
-
-        return None
-
 
 
     def get_stats_attack(self, test_path, attack):
@@ -56,55 +42,26 @@ class DataAnalysis:
 
         DF_attack = pd.read_csv(test_path+attack)
 
-        """
-        X_test = self.X_test[attack]
-        Y_test = self.Y_test[attack]
-        DF_test = self.DF_test_collection[attack]
-
-        X_test = self.scaler.transform(X_test)
-
-        Y_pred = self.model.predict(X_test)
-        DF_drop_values = DF_test[['Run','Time','Start','Detection']]
-        DF_drop_values = DF_drop_values.assign(Pred = Y_pred) 
-
-        #DF_drop_values['Pred'] = Y_pred
-        #print(DF_drop_values)
-        
-        #Y_pred_proba = self.model.predict_proba(X_test)
-        
-        #print("Y_pred: \n",Y_pred)
-        #print("Y_pred_proba: \n",Y_pred_proba)
-
-        #print("ACCURACY: ", str(metrics.accuracy_score(Y_test,Y_pred)))
-        #print("LOG LOSS: ", str(metrics.log_loss(Y_test, Y_pred_proba, labels=[0.0,1.0])))
-
-        #print(classification_report(Y_test, Y_pred))
-        confusion_matrix = metrics.confusion_matrix(Y_test, Y_pred)
-        print(confusion_matrix)
-
-        #print("Y_test", Y_test,"len y_test: ", len(Y_test), " \nY_pred: ", Y_pred, "len y_pred: ", len(Y_pred))
-        """
         grouped_attack = DF_attack.groupby("Run")
         sim_lists = sorted(DF_attack.Run.unique())
         _simulations = len(sim_lists)
         attack_detect_delay = np.zeros( _simulations )
         attack_detect = 0
-        fake_detect = 0         
+        fake_detect = 0                   
         
-        leader_attack_detect = 0
-        predecessor_attack_detect = 0
-        leader_attack_detect_delay = np.zeros( _simulations )
-        predecessor_attack_detect_delay = np.zeros( _simulations )
-        attack_detect = np.zeros( 7 )        
-        
+
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            #print("-----------------------------------------------------------------------------------------------------------",simulation)
-            #print("--------",simulation, end="\r", flush=True)
+            print("----------------------------------------------------------------------------",simulation)
+            #print("--------",simulation, end='\r')
             data_attack = grouped_attack.get_group(simulation)
 
             grouped_values = data_attack.groupby("Value")
             name_values = sorted(data_attack.Value.unique())
+            best_delay_values = 100
+            flag_fake_detect = False
+
             for name_value in name_values:
+                print("---------------------------------------------",name_value)
                 data_value = grouped_values.get_group(name_value)
                 X_test = data_value.drop(['Run','Time','Start','Value','Detection'], axis=1).values
                 Y_test = data_value['Detection'].values
@@ -112,43 +69,51 @@ class DataAnalysis:
                 X_test = self.scaler[name_value].transform(X_test)
                 X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
                 Y_pred = self.model[name_value].predict(X_test)
-                Y_pred_round = [1 * (x[0]>=0.9) for x in Y_pred]
-                DF_drop_values = data_value[['Time','Start','Detection']]
-                DF_drop_values = DF_drop_values.assign(Pred = Y_pred) 
+                Y_pred_round = [1 * (x[0]>=0.8) for x in Y_pred]
+                DF_single_value = data_value[['Time','Start','Detection']]
+                DF_single_value = DF_single_value.assign(Pred = Y_pred_round) 
                 #print("\nX_TEST",X_test[0],"\n")
                 #print("\nY_TEST",Y_test,"\n")
-                #print("\nDF_drop_values\n",DF_drop_values,"\n")
+                #print("\nDF_single_value\n",DF_single_value,"\n")
                 #print("\nY_pred",Y_pred,"\n")
+                
+                
+
                 if name_value == 'Rdistance':
-                    print("\nY_pred",DF_drop_values[0:30],"\n")
-                print(name_value)
+                    #continue
+                    print("\nY_pred\n",DF_single_value[0:30],"\n")
+                #print(name_value)
                 confusion_matrix = metrics.confusion_matrix(Y_test, Y_pred_round)
                 print(confusion_matrix)
 
+                early_detect = np.where(DF_single_value['Pred']>DF_single_value['Detection'])[0]
+                if len(early_detect)>0:
+                    #print(DF_single_value.iloc[early_detect[0]]['Time'])
+                    #fake_detect += 1
+                    flag_fake_detect = True
+                    break
                 
-
-            exit()
-            flag_fake_detect = False
-            #print(data,"\n\n\n\n")
-            early_detect = np.where(data['Pred']>data['Detection'])[0]
-            if len(early_detect)>0:
-                #print(data.iloc[early_detect[0]]['Start'])
+                detection = np.where((DF_single_value['Pred'].astype(int)&DF_single_value['Detection'].astype(int))==1)[0]
+                #print(detection)
+                if len(detection)>0:
+                    delay_single_value = (DF_single_value.iloc[detection[0]]['Time']) - (DF_single_value.iloc[detection[0]]['Start'])
+                    
+                    if delay_single_value < best_delay_values :
+                        best_delay_values = delay_single_value
+                    #print("delay_single_value", delay_single_value, " best_delay_values", best_delay_values)
+                
+            if flag_fake_detect :
                 fake_detect += 1
-                flag_fake_detect = True
-
-            #TODO: andrebbe un IF per evitare di contare come attacchi rilevati anche i fake attacks
-            detection = np.where((data['Pred'].astype(int)&data['Detection'].astype(int))==1)[0]
-            #print(detection)
-            if len(detection)>0:
-                #print(data.iloc[detection[0]])
-                attack_detect_delay[simulation_index] = (data.iloc[detection[0]]['Time']) - (data.iloc[detection[0]]['Start'])
-                #print("Delay", attack_detect_delay)
+                attack_detect_delay[simulation_index] = -1
+            elif best_delay_values != 100:
                 attack_detect += 1
+                attack_detect_delay[simulation_index] = best_delay_values
             else:
                 attack_detect_delay[simulation_index] = 0
 
-            attack_detect_delay[simulation_index] = -1 if flag_fake_detect else attack_detect_delay[simulation_index]
+            #print("fake_detect:", fake_detect, "attack_detect ",attack_detect, " attack_detect_delay", attack_detect_delay)
             #exit()
+            
         print("------------- ",attack," (TOT_SIM: ",_simulations,") -------------")
         #print("ad: ",attack_detect_delay)
         print("DETECTION")
@@ -169,17 +134,12 @@ if __name__ == "__main__":
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}NoInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     analyzer = DataAnalysis(model_path,test_path,AllAttacks[0])
 
     for attack in AllAttacks:
         print("--------------------------------------------",attack,"-------------------------------------")
         analyzer.get_stats_attack(test_path, attack)
-
-        for _attack_index, attack in enumerate(AllAttacks):
-            analyzer.get_stats_attack(attack)
-        
-        #exit() 
 
     print("--- %s s ---" % ((time.time() - start_time)))
 

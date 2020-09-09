@@ -12,6 +12,7 @@ from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers import LSTM
 from keras.layers import GRU
+from keras.layers import Bidirectional
 from keras.layers import SimpleRNN
 from keras.layers import TimeDistributed
 from keras.layers.convolutional import Conv1D
@@ -57,7 +58,9 @@ print("shape_X",X_train.shape,"shape_Y",y_train.shape)
 #exit()
 #####################################################################
 n_timesteps, n_features, n_outputs = X_train.shape[1], X_train.shape[2], y_train.shape[0]
-model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
+#model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu'))
+model.add(Bidirectional(LSTM(128, return_sequences=True), input_shape=(X_train.shape[1:])))
+#model.add(Bidirectional(GRU(64, return_sequences=True)))
 #model.add(LSTM(128, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
 model.add(Dropout(0.1))
 """
@@ -74,11 +77,11 @@ model.add(Dropout(0.8))
 model.add(LSTM(64, activation='relu', return_sequences=True))
 model.add(Dropout(0.8))
 """
-model.add(LSTM(64, activation='relu'))
-model.add(Dropout(0.1))
+#model.add(GRU(64, activation='relu'))
+#model.add(Dropout(0.1))
 #model.add(TimeDistributed(Dense(1)))
-
-
+model.add(TimeDistributed(Dense(1, activation='sigmoid')))
+"""
 model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
 
@@ -90,7 +93,7 @@ model.add(Dropout(0.1))
 
 model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
-
+"""
 #####################################################################
 """
 model.add(Dense(256, input_dim = X_train.shape[1], activation='relu'))
@@ -101,7 +104,8 @@ model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
 """
 
-model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
+#model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
+
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(model.summary())
 history = model.fit(X_train, y_train, epochs=1, batch_size=32)

@@ -129,12 +129,9 @@ class DataTuning:
             else:
                 self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
             #print(DF_temp_train)
-            #TODO controllo se trai o no, e memorizzarlo nel DB giusto
+            
 
             #self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
-        
-        #TODO creare una cartella per ogni attacco, e mettere i valori in CSV diversi
-        # dopodichè creare la cartella train, e mettere i  valori in CSV diversi
         
 
     def series_to_supervised(self, data, n_in=9, n_out=1, dropnan=True):

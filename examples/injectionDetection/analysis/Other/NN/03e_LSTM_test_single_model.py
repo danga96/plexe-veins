@@ -63,12 +63,12 @@ class GenerateModel:
         DF_attack = pd.read_csv(test_path+'RandomAccelerationInjection.csv')
         grouped_attack = DF_attack.groupby("Run")
         sim_lists = sorted(DF_attack.Run.unique())
-        data_attack = grouped_attack.get_group(sim_lists[0])
+        data_attack = grouped_attack.get_group(sim_lists[0])#scegli il numero della simulazione
 
         grouped_values = data_attack.groupby("Value")
         name_values = sorted(data_attack.Value.unique())
         print("name_values:",name_values)
-        data_value = grouped_values.get_group(name_values[0])
+        data_value = grouped_values.get_group(name_values[0])#scegli il valore da testare
         X_test = data_value.drop(['Run','Time','Start','Value','Detection'], axis=1).values
         y_test = data_value['Detection'].values
         print(sim_lists[0],name_values[0])

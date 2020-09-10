@@ -413,7 +413,7 @@ if __name__ == "__main__":
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[:50]
+        sim_lists = sorted(test_data.run.unique())[:5]
         _simulations = len(sim_lists)
 
         NoInjection = "NoInjection" in attack

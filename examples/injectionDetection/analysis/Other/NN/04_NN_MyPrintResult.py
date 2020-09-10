@@ -47,11 +47,14 @@ class DataAnalysis:
         _simulations = len(sim_lists)
         attack_detect_delay = np.zeros( _simulations )
         attack_detect = 0
-        fake_detect = 0                   
-        
+        fake_detect = 0   
+        soon_detect = 0 
+        who_is = {}
+        for name_value in self.name_values:               
+            who_is[name_value] = 0
 
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-            print("----------------------------------------------------------------------------",simulation)
+            print("----------------------------------------------------------------------------",simulation, end='\r')
             #print("--------",simulation, end='\r')
             data_attack = grouped_attack.get_group(simulation)
 
@@ -61,7 +64,7 @@ class DataAnalysis:
             flag_fake_detect = False
 
             for name_value in name_values:
-                print("---------------------------------------------",name_value)
+                #print("---------------------------------------------",name_value)
                 data_value = grouped_values.get_group(name_value)
                 X_test = data_value.drop(['Run','Time','Start','Value','Detection'], axis=1).values
                 Y_test = data_value['Detection'].values
@@ -78,18 +81,24 @@ class DataAnalysis:
                 #print("\nY_pred",Y_pred,"\n")
                 
                 
-
+                """
                 if name_value == 'Rdistance':
                     #continue
                     print("\nY_pred\n",DF_single_value[0:30],"\n")
                 #print(name_value)
                 confusion_matrix = metrics.confusion_matrix(Y_test, Y_pred_round)
                 print(confusion_matrix)
+                """
 
                 early_detect = np.where(DF_single_value['Pred']>DF_single_value['Detection'])[0]
                 if len(early_detect)>0:
-                    #print(DF_single_value.iloc[early_detect[0]]['Time'])
+                    
+                    if DF_single_value.iloc[early_detect[0]]['Time'] < 10:
+                        soon_detect += 1
+                    else:
+                        print(DF_single_value.iloc[early_detect[0]]['Time']," ",name_value," ",DF_single_value.iloc[early_detect[0]]['Start'])
                     #fake_detect += 1
+                    who_is[name_value] += 1
                     flag_fake_detect = True
                     break
                 
@@ -118,9 +127,13 @@ class DataAnalysis:
         #print("ad: ",attack_detect_delay)
         print("DETECTION")
         print("  attack_detect: ",attack_detect, " ({:.2f}%)".format(100 * attack_detect/_simulations), 
-                " false_positive: ", fake_detect, " ({:.2f}%)".format(100 * fake_detect/_simulations),
+                " false_positive[soon_detect]: ", fake_detect," [",soon_detect,"] ", " ({:.2f}%)".format(100 * fake_detect/_simulations),
                     " delay(s): ", np.nan if len(_remove_negative(attack_detect_delay)) <= 0 else 
                                             round(_remove_negative(attack_detect_delay).mean(),2))
+
+        print(who_is)
+        #for key,value in who_is:
+           # print(who_is)
         #exit()
                 
         
@@ -134,7 +147,7 @@ if __name__ == "__main__":
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    AllAttacks = ["{}NoInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}NoInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     analyzer = DataAnalysis(model_path,test_path,AllAttacks[0])
 
     for attack in AllAttacks:

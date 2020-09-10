@@ -1,0 +1,65 @@
+CONFIGURAZIONE 1:
+    model = Sequential()
+    model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
+
+    RISULTATI da "03d_LSTM_generate_model.py" (con 100 simulazioni di Train per ogni Valore):
+        -------------------------------------------- KFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 154s 12ms/step - loss: 0.2407 - accuracy: 0.9247
+        -------------------------------------------- Rdistance.csv -------------------------------------
+        12440/12440 [==============================] - 160s 13ms/step - loss: 0.4070 - accuracy: 0.8399
+        -------------------------------------------- RKFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 156s 13ms/step - loss: 0.1603 - accuracy: 0.9562
+        -------------------------------------------- RKFspeed.csv -------------------------------------
+        12440/12440 [==============================] - 155s 12ms/step - loss: 0.2694 - accuracy: 0.9123
+        -------------------------------------------- RV2Xspeed.csv -------------------------------------
+        12440/12440 [==============================] - 160s 13ms/step - loss: 0.4711 - accuracy: 0.8076
+        -------------------------------------------- V2XKFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 151s 12ms/step - loss: 0.3170 - accuracy: 0.8923
+        -------------------------------------------- V2XKFspeed.csv -------------------------------------
+        12440/12440 [==============================] - 162s 13ms/step - loss: 0.3031 - accuracy: 0.8974
+
+        --- 1123.8486635684967 s ---
+    
+    RISULTATI da "04_NN_MyPrintResult.py" (con 100 simulazioni di test per ogni attacco):
+        -------------------------------------------- RandomNoInjection.csv -------------------------------------
+        -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199
+        DETECTION
+        attack_detect:  0  (0.00%)  false_positive:  76  (76.00%)  delay(s):  nan
+        -------------------------------------------- RandomPositionInjection.csv -------------------------------------
+        -------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) --------------- 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  0.84
+        -------------------------------------------- RandomSpeedInjection.csv -------------------------------------
+        -------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) ------------------ 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  1.34
+        -------------------------------------------- RandomAccelerationInjection.csv -------------------------------------
+        -------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------99
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  2.02
+        -------------------------------------------- RandomAllInjection.csv -------------------------------------
+        -------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------------- 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  0.83
+        -------------------------------------------- RandomCoordinatedInjection.csv -------------------------------------
+        -------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  1.73
+        --- 230.65652656555176 s ---

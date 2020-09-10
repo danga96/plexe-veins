@@ -13,7 +13,7 @@ from sklearn.preprocessing import StandardScaler
 col_train = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0', 'Detection']
 col_test = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0','Run','Time','Start','Value','Detection']
     
-train_simulation = 3
+train_simulation = 100
 
 window = 10
 #TODO: se si modifica window, occorre modificare anche le colonne di "col_train" e "col_test"
@@ -40,7 +40,7 @@ class DataTuning:
         attack_lists = (DB_values.attack.unique())
         _attacks = len(attack_lists)        
 
-        for attack_index, attack in enumerate(attack_lists):#per ogni attacco
+        for attack_index, attack in enumerate(attack_lists[1:]):#per ogni attacco
             print("-----------------------------------------------------------------------------------------------------------",attack)
             self.DB_values_test = pd.DataFrame(columns=col_test)
             self.attack_data = grouped.get_group(attack)
@@ -99,8 +99,9 @@ class DataTuning:
         #sampling_times = self.simulation_data['time'].loc['V2XKFspeed']
         sampling_times = self.simulation_data.loc[self.simulation_data.name_value == 'V2XKFspeed','time'].values[0]
         #print(sampling_times)
-
+        
         for i, name_value in enumerate(self.name_values):# per ogni valore
+            self.flag_not_diverge = False
             DF_temp_train = pd.DataFrame(columns=col_train)
             DF_temp_test = pd.DataFrame(columns=col_test)
             #print("\n\n",self.simulation_data['value'].iloc[i])
@@ -108,14 +109,18 @@ class DataTuning:
             data = self.simulation_data.loc[self.simulation_data.name_value == name_value,'value'].values[0]
             #data = self.simulation_data['value'].iloc[i]
             data_re = data.reshape(len(data),1)
-
-            #print(data_re.shape,len(data_re),type(data_re))
+            #print("Name_value",name_value," DATA: ", data, " MAX:", np.abs(data)[100:].max(), "mean: ", np.abs(data[100]), "sub: ",np.abs(data)[100:].max() - np.abs(data[100]))
+            if (np.abs(data)[100:].max() - np.abs(data[100])) < 2:
+                self.flag_not_diverge = True
             #exit()
+            #print(data_re.shape,len(data_re),type(data_re))
+            
             data_supervised = self.series_to_supervised(data.reshape(len(data),1),n_in=window-1)
             #print(data_supervised)
             
             DF_temp_train = DF_temp_train.append(data_supervised, ignore_index = True)
             target_col = self._set_target_col(sampling_times,window)
+            #print("Target COL: ", target_col)
             #print("LEN_target_col",len(target_col))            
             DF_temp_train[DF_temp_train.columns[-1]] = target_col
             if is_train is False:
@@ -130,9 +135,15 @@ class DataTuning:
                 self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
             #print(DF_temp_train)
             
-
+            """
+            if name_value == 'RV2Xspeed':
+                #print(data_re.shape,len(data_re),type(data_re),"\n",data_re)
+                print(DF_temp_train)
+                exit()
+            """
             #self.DB_values_train[name_value] = self.DB_values_train[name_value].append(DF_temp_train, ignore_index=True)
-        
+        #exit()
+       
 
     def series_to_supervised(self, data, n_in=9, n_out=1, dropnan=True):
         """
@@ -176,8 +187,8 @@ class DataTuning:
 
         attack_start = self.attack_start
         target_array = np.zeros( len(sampling_times)-window+1 )
-        
-        if attack_start == 0:
+
+        if attack_start == 0 or self.flag_not_diverge:
             return target_array
 
         #print("type: ",type(sampling_times), " len: ",len(sampling_times), " attack_start: ", attack_start)

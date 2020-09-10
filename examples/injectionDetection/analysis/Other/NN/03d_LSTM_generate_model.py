@@ -12,6 +12,7 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers import LSTM
+from keras.layers import GRU
 from keras.layers import SimpleRNN
 from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
@@ -44,7 +45,7 @@ class GenerateModel:
             Y = value_data["Detection"].values
 
             self.X_train[name_value], self.X_test[name_value], \
-                self.y_train[name_value], self.y_test[name_value] = train_test_split(X, Y, test_size = 0.3, shuffle=True)
+                self.y_train[name_value], self.y_test[name_value] = train_test_split(X, Y, test_size = 0.01, shuffle=True)
 
             #print("Shape X:",X.shape," X_train", self.X_train[name_value].shape, " ", self.X_train[name_value])
 
@@ -74,6 +75,7 @@ class GenerateModel:
         #print("shape_X",X_train.shape,"shape_Y",y_train.shape)
 
         model = Sequential()
+        """
         model.add(LSTM(64, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
         model.add(Dropout(0.2))
 
@@ -82,12 +84,27 @@ class GenerateModel:
 
         model.add(Dense(32, activation='relu'))
         model.add(Dropout(0.2))
+        """
+        model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu'))
+        model.add(Dropout(0.1))
 
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
+        model.add(Dropout(0.1))
 
+        model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
+        model.add(Dropout(0.1))
+
+        model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
+        model.add(Dropout(0.1))
+
+        model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
+        model.add(Dropout(0.1))
+
+        model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
+        #model.add(Dense(1, activation='sigmoid'))
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
         #print(model.summary())
-        history = model.fit(X_train, y_train, epochs=1, batch_size=64, verbose=0)
+        history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
         # Final evaluation of the model
         score = model.evaluate(X_test, y_test, verbose=0)
 
@@ -118,7 +135,7 @@ if __name__ == "__main__":
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)
 
-    num_workers = 2
+    num_workers = 1
     params = AllValues
 
     pool = multiprocessing.Pool(num_workers, generator.init_worker)

@@ -60,7 +60,7 @@ class GenerateModel:
         y_train = self.y_train[name_value]
 
         test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/DB_Test/"
-        DF_attack = pd.read_csv(test_path+'RandomAccelerationInjection.csv')
+        DF_attack = pd.read_csv(test_path+'RandomNoInjection.csv')
         grouped_attack = DF_attack.groupby("Run")
         sim_lists = sorted(DF_attack.Run.unique())
         data_attack = grouped_attack.get_group(sim_lists[0])#scegli il numero della simulazione

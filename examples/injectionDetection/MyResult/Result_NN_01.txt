@@ -1,0 +1,235 @@
+CONFIGURAZIONE 1:
+    model = Sequential()
+    model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
+    model.add(Dropout(0.1))
+
+    model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
+
+    RISULTATI da "03d_LSTM_generate_model.py" (con 100 simulazioni di Train per ogni Valore):
+        -------------------------------------------- KFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 154s 12ms/step - loss: 0.2407 - accuracy: 0.9247
+        -------------------------------------------- Rdistance.csv -------------------------------------
+        12440/12440 [==============================] - 160s 13ms/step - loss: 0.4070 - accuracy: 0.8399
+        -------------------------------------------- RKFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 156s 13ms/step - loss: 0.1603 - accuracy: 0.9562
+        -------------------------------------------- RKFspeed.csv -------------------------------------
+        12440/12440 [==============================] - 155s 12ms/step - loss: 0.2694 - accuracy: 0.9123
+        -------------------------------------------- RV2Xspeed.csv -------------------------------------
+        12440/12440 [==============================] - 160s 13ms/step - loss: 0.4711 - accuracy: 0.8076
+        -------------------------------------------- V2XKFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 151s 12ms/step - loss: 0.3170 - accuracy: 0.8923
+        -------------------------------------------- V2XKFspeed.csv -------------------------------------
+        12440/12440 [==============================] - 162s 13ms/step - loss: 0.3031 - accuracy: 0.8974
+
+        --- 1123.8486635684967 s ---
+    
+    RISULTATI da "04_NN_MyPrintResult.py" (con 100 simulazioni di test per ogni attacco):
+        -------------------------------------------- RandomNoInjection.csv -------------------------------------
+        -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199
+        DETECTION
+        attack_detect:  0  (0.00%)  false_positive:  76  (76.00%)  delay(s):  nan
+        -------------------------------------------- RandomPositionInjection.csv -------------------------------------
+        -------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) --------------- 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  0.84
+        -------------------------------------------- RandomSpeedInjection.csv -------------------------------------
+        -------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) ------------------ 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  1.34
+        -------------------------------------------- RandomAccelerationInjection.csv -------------------------------------
+        -------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------99
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  2.02
+        -------------------------------------------- RandomAllInjection.csv -------------------------------------
+        -------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------------- 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  0.83
+        -------------------------------------------- RandomCoordinatedInjection.csv -------------------------------------
+        -------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive:  60  (60.00%)  delay(s):  1.73
+        --- 230.65652656555176 s ---
+    
+    RISULTATI più specifici
+        -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199
+        DETECTION
+        attack_detect:  0  (0.00%)  false_positive[soon_detect]:  76  [ 45 ]   (76.00%)  delay(s):  nan
+        {'KFdistance': 16, 'V2XKFdistance': 8, 'V2XKFspeed': 5, 'Rdistance': 1, 'RKFdistance': 27, 'RV2Xspeed': 0, 'RKFspeed': 19}
+        -------------------------------------------- RandomPositionInjection.csv -------------------------------------
+        -------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) --------------- 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive[soon_detect]:  60  [ 45 ]   (60.00%)  delay(s):  0.84
+        {'KFdistance': 15, 'V2XKFdistance': 5, 'V2XKFspeed': 2, 'Rdistance': 0, 'RKFdistance': 26, 'RV2Xspeed': 0, 'RKFspeed': 12}
+        -------------------------------------------- RandomSpeedInjection.csv -------------------------------------
+        -------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) ------------------ 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive[soon_detect]:  60  [ 45 ]   (60.00%)  delay(s):  1.34
+        {'KFdistance': 15, 'V2XKFdistance': 5, 'V2XKFspeed': 2, 'Rdistance': 0, 'RKFdistance': 26, 'RV2Xspeed': 0, 'RKFspeed': 12}
+        -------------------------------------------- RandomAccelerationInjection.csv -------------------------------------
+        -------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------99
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive[soon_detect]:  60  [ 45 ]   (60.00%)  delay(s):  2.02
+        {'KFdistance': 15, 'V2XKFdistance': 5, 'V2XKFspeed': 2, 'Rdistance': 0, 'RKFdistance': 26, 'RV2Xspeed': 0, 'RKFspeed': 12}
+        -------------------------------------------- RandomAllInjection.csv -------------------------------------
+        -------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------------- 199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive[soon_detect]:  60  [ 45 ]   (60.00%)  delay(s):  0.83
+        {'KFdistance': 15, 'V2XKFdistance': 5, 'V2XKFspeed': 2, 'Rdistance': 0, 'RKFdistance': 26, 'RV2Xspeed': 0, 'RKFspeed': 12}
+        -------------------------------------------- RandomCoordinatedInjection.csv -------------------------------------
+        -------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------199
+        DETECTION
+        attack_detect:  40  (40.00%)  false_positive[soon_detect]:  60  [ 45 ]   (60.00%)  delay(s):  1.73
+        {'KFdistance': 15, 'V2XKFdistance': 5, 'V2XKFspeed': 2, 'Rdistance': 0, 'RKFdistance': 26, 'RV2Xspeed': 0, 'RKFspeed': 12}
+        --- 230.5148549079895 s ---
+
+    (------------Nuovo approccio: classificare come attacchi solo quando c'è una divergenza------------------------)
+    RISULTATI da "03d_LSTM_generate_model.py" (con 100 simulazioni di Train per ogni Valore):
+        -------------------------------------------- KFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 149s 12ms/step - loss: 0.2236 - accuracy: 0.9302
+        -------------------------------------------- Rdistance.csv -------------------------------------
+        12440/12440 [==============================] - 147s 12ms/step - loss: 0.1577 - accuracy: 0.9583
+        -------------------------------------------- RKFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 150s 12ms/step - loss: 0.1603 - accuracy: 0.9562
+        -------------------------------------------- RKFspeed.csv -------------------------------------
+        12440/12440 [==============================] - 151s 12ms/step - loss: 0.1196 - accuracy: 0.9636
+        -------------------------------------------- RV2Xspeed.csv -------------------------------------
+        12440/12440 [==============================] - 156s 13ms/step - loss: 0.0957 - accuracy: 0.9640
+        -------------------------------------------- V2XKFdistance.csv -------------------------------------
+        12440/12440 [==============================] - 157s 13ms/step - loss: 0.2690 - accuracy: 0.9155
+        -------------------------------------------- V2XKFspeed.csv -------------------------------------
+        12440/12440 [==============================] - 157s 13ms/step - loss: 0.0802 - accuracy: 0.9718
+        --- 1095.0094282627106 s ---
+        (------ABILITATO SHUFFLE nel TRAINING-------------------)
+            -------------------------------------------- KFdistance.csv -------------------------------------
+            12566/12566 [==============================] - 149s 12ms/step - loss: 0.2234 - accuracy: 0.9313
+            -------------------------------------------- V2XKFdistance.csv -------------------------------------
+            12566/12566 [==============================] - 142s 11ms/step - loss: 0.2688 - accuracy: 0.9157
+    
+    RISULTATI da "04_NN_MyPrintResult.py" (con 100 simulazioni di test per ogni attacco):
+        -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199
+        DETECTION
+        attack_detect:  43  (43.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  14.06
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 1, 'V2XKFspeed': 0, 'Rdistance': 7, 'RKFdistance': 34, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        -------------------------------------------- RandomPositionInjection.csv -------------------------------------
+        -------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) --------------- 199
+        DETECTION
+        attack_detect:  65  (65.00%)  false_positive[soon_detect]:  35  [ 34 ]   (35.00%)  delay(s):  0.94
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 33, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 63, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 1, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomSpeedInjection.csv -------------------------------------
+        -------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) ------------------ 199
+        DETECTION
+        attack_detect:  65  (65.00%)  false_positive[soon_detect]:  35  [ 34 ]   (35.00%)  delay(s):  3.7
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 33, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 2, 'V2XKFspeed': 0, 'Rdistance': 10, 'RKFdistance': 45, 'RV2Xspeed': 2, 'RKFspeed': 6}
+        -------------------------------------------- RandomAccelerationInjection.csv -------------------------------------
+        -------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------99
+        DETECTION
+        attack_detect:  65  (65.00%)  false_positive[soon_detect]:  35  [ 34 ]   (35.00%)  delay(s):  2.97
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 33, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 9, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 56}
+        -------------------------------------------- RandomAllInjection.csv -------------------------------------
+        -------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------------- 199
+        DETECTION
+        attack_detect:  65  (65.00%)  false_positive[soon_detect]:  35  [ 34 ]   (35.00%)  delay(s):  0.95
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 33, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 59, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 5, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomCoordinatedInjection.csv -------------------------------------
+        -------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------199
+        DETECTION
+        attack_detect:  65  (65.00%)  false_positive[soon_detect]:  35  [ 34 ]   (35.00%)  delay(s):  2.54
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 33, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 3, 'V2XKFspeed': 0, 'Rdistance': 4, 'RKFdistance': 13, 'RV2Xspeed': 0, 'RKFspeed': 45}
+        --- 292.4645240306854 s ---
+
+
+    RISULTATI da "04_NN_MyPrintResult.py" (con 100 simulazioni di test per ogni attacco- NO:RKFdistance):
+        -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199
+        DETECTION
+        attack_detect:  16  (16.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  44.82
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 1, 'V2XKFspeed': 0, 'Rdistance': 11, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 4}
+        -------------------------------------------- RandomPositionInjection.csv -------------------------------------
+        -------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) --------------- 199
+        DETECTION
+        attack_detect:  94  (94.00%)  false_positive[soon_detect]:  6  [ 2 ]   (6.00%)  delay(s):  0.93
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 3, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 3}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 93, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomSpeedInjection.csv -------------------------------------
+        -------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) ------------------ 199
+        DETECTION
+        attack_detect:  94  (94.00%)  false_positive[soon_detect]:  6  [ 2 ]   (6.00%)  delay(s):  4.05
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 3, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 3}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 5, 'V2XKFspeed': 0, 'Rdistance': 61, 'RKFdistance': 0, 'RV2Xspeed': 8, 'RKFspeed': 20}
+        -------------------------------------------- RandomAccelerationInjection.csv -------------------------------------
+        -------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------99
+        DETECTION
+        attack_detect:  94  (94.00%)  false_positive[soon_detect]:  6  [ 2 ]   (6.00%)  delay(s):  3.09
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 3, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 3}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 16, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 78}
+        -------------------------------------------- RandomAllInjection.csv -------------------------------------
+        -------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------------- 199
+        DETECTION
+        attack_detect:  94  (94.00%)  false_positive[soon_detect]:  6  [ 2 ]   (6.00%)  delay(s):  0.94
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 3, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 3}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 92, 'V2XKFspeed': 0, 'Rdistance': 1, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 1}
+        -------------------------------------------- RandomCoordinatedInjection.csv -------------------------------------
+        -------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------199
+        DETECTION
+        attack_detect:  94  (94.00%)  false_positive[soon_detect]:  6  [ 2 ]   (6.00%)  delay(s):  2.61
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 3, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 3}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 7, 'V2XKFspeed': 0, 'Rdistance': 10, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 77}
+        --- 302.0965418815613 s ---
+
+    RISULTATI da "04_NN_MyPrintResult.py" (con 100 simulazioni di test per ogni attacco- NO:RADAR):
+            -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199
+        DETECTION
+        attack_detect:  2  (2.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  80.42
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 1, 'V2XKFdistance': 1, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomPositionInjection.csv -------------------------------------
+        -------------  RandomPositionInjection.csv  (TOT_SIM:  100 ) --------------- 199
+        DETECTION
+        attack_detect:  100  (100.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  0.94
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 100, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomSpeedInjection.csv -------------------------------------
+        -------------  RandomSpeedInjection.csv  (TOT_SIM:  100 ) ------------------ 199
+        DETECTION
+        attack_detect:  100  (100.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  5.76
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 100, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomAccelerationInjection.csv -------------------------------------
+        -------------  RandomAccelerationInjection.csv  (TOT_SIM:  100 ) -------------99
+        DETECTION
+        attack_detect:  100  (100.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  7.13
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 8, 'V2XKFdistance': 92, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomAllInjection.csv -------------------------------------
+        -------------  RandomAllInjection.csv  (TOT_SIM:  100 ) -------------------- 199
+        DETECTION
+        attack_detect:  100  (100.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  0.95
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 0, 'V2XKFdistance': 100, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        -------------------------------------------- RandomCoordinatedInjection.csv -------------------------------------
+        -------------  RandomCoordinatedInjection.csv  (TOT_SIM:  100 ) -------------199
+        DETECTION
+        attack_detect:  100  (100.00%)  false_positive[soon_detect]:  0  [ 0 ]   (0.00%)  delay(s):  8.08
+        WHO_FP {'KFdistance': 0, 'V2XKFdistance': 0, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        WHO_TP {'KFdistance': 89, 'V2XKFdistance': 11, 'V2XKFspeed': 0, 'Rdistance': 0, 'RKFdistance': 0, 'RV2Xspeed': 0, 'RKFspeed': 0}
+        --- 153.81915593147278 s ---

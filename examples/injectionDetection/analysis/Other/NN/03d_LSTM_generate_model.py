@@ -6,6 +6,7 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers import Dropout
@@ -14,6 +15,9 @@ from keras.layers import Flatten
 from keras.layers import LSTM
 from keras.layers import GRU
 from keras.layers import SimpleRNN
+from keras.layers import RepeatVector
+from keras.layers import TimeDistributed
+from keras import optimizers
 from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
 from keras.layers.embeddings import Embedding
@@ -30,7 +34,7 @@ import multiprocessing
 # fix random seed for reproducibility
 tf.random.set_seed(2)
 np.random.seed(7)
-
+#os.system("taskset -p -c 0 %d" % os.getpid())
 class GenerateModel:
     def __init__(self, base_path, AllValues):
         self.X_test = {}
@@ -41,11 +45,14 @@ class GenerateModel:
         for name_value in AllValues:
             #print("--------------------------------------------",name_value,"-------------------------------------")
             value_data = pd.read_csv(base_path+name_value)
+            #value_data = shuffle(value_data)
             X = value_data.drop(['Detection'], axis=1).values
             Y = value_data["Detection"].values
 
-            self.X_train[name_value], self.X_test[name_value], \
-                self.y_train[name_value], self.y_test[name_value] = train_test_split(X, Y, test_size = 0.01, shuffle=True)
+            self.X_train[name_value] = X
+            self.y_train[name_value] = Y
+            #self.X_train[name_value], self.X_test[name_value], \
+            #    self.y_train[name_value], self.y_test[name_value] = train_test_split(X, Y, test_size = 0.01, shuffle=True)
 
             #print("Shape X:",X.shape," X_train", self.X_train[name_value].shape, " ", self.X_train[name_value])
 
@@ -57,18 +64,18 @@ class GenerateModel:
     def train_model(self, name_value):
         print("--------------------------------------------",name_value,"-------------------------------------")
         X_train = self.X_train[name_value]
-        X_test = self.X_test[name_value]
+        #X_test = self.X_test[name_value]
         y_train = self.y_train[name_value]
-        y_test = self.y_test[name_value]
+        #y_test = self.y_test[name_value]
 
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
+        #X_test = scaler.transform(X_test)
 
         
         
         
-        X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
+        ##X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
 
         X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
         
@@ -85,27 +92,82 @@ class GenerateModel:
         model.add(Dense(32, activation='relu'))
         model.add(Dropout(0.2))
         """
-        model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu'))
+        #model.add(Conv1D(filters=128, kernel_size=5, activation='tanh', input_shape=(10,1)))
+        #model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
+        #model.add(Flatten())
+        #model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='tanh', return_sequences=True, kernel_initializer='glorot_uniform'))
+        #model.add(Dropout(0.4))
+        #model.add(GRU(256, input_shape=(X_train.shape[1:]), activation='tanh', kernel_initializer='glorot_uniform',return_sequences=True))
+        #model.add(GRU(50, activation='tanh', return_sequences=True, kernel_initializer='glorot_uniform'))
+        #model.add(Dropout(0.4))
+        #model.add(Dropout(0.6))
+        #model.add(RepeatVector(n=X_train.shape[1]))
+        #model.add(GRU(64, activation='relu',return_sequences=True))
+        #model.add(Dropout(0.1))
+        #model.add(LSTM(64, activation='relu', return_sequences=False))
+        #model.add(Dropout(0.2))
+        #model.add(Conv1D(filters=64, kernel_size=2, activation='relu'))
+        #model.add(Conv1D(filters=64, kernel_size=2, activation='relu', input_shape=(10,1)))
+        #model.add(MaxPooling1D(pool_size=3))
+        #model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
+        #model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
+        #model.add(MaxPooling1D(pool_size=2,strides=1))
+        #model.add(Dropout(0.1))
+
+        #model.add(LSTM(128, activation='tanh', return_sequences=False, kernel_initializer='glorot_uniform'))
+        #model.add(Flatten())
+        
+        #model.add(Dropout(0.4))
+        #model.add(GRU(20, activation='tanh', return_sequences=False, kernel_initializer='glorot_uniform'))
+        #model.add(Dropout(0.6))
+        #model.add(Dense(256, activation='relu', input_dim=10 , kernel_initializer='glorot_uniform'))
+        #model.add(Flatten())
+        """
+        model.add(Dense(256, activation='tanh', kernel_initializer='glorot_uniform'))
         model.add(Dropout(0.1))
 
+        model.add(Dense(128, activation='tanh', kernel_initializer='glorot_uniform'))
+        model.add(Dropout(0.1))
+
+        model.add(Dense(128, activation='tanh', kernel_initializer='glorot_uniform'))
+        model.add(Dropout(0.1))
+        
+        model.add(Dense(64, activation='tanh',  kernel_initializer='glorot_uniform'))
+        model.add(Dropout(0.1))
+        """
+        #model.add(Flatten())
+        #model.add(Dense(128, activation='tanh',  kernel_initializer='uniform'))
+        #model.add(Dropout(0.1))
+        #model.add(Dense(64, activation='tanh',  kernel_initializer='glorot_uniform'))
+        #model.add(Dropout(0.2))
+        #model.add(Dense(64, activation='tanh',  kernel_initializer='uniform'))
+        
+        #model.add(Dense(32, activation='tanh', kernel_initializer='uniform'))
+        
+        #model.add(TimeDistributed(Dense(1)))
+        """
+        model.add(Dense(1, activation='sigmoid',  kernel_initializer='glorot_uniform'))
+        opt = optimizers.Adam(learning_rate=0.001)
+        model.compile(loss='binary_crossentropy', optimizer = opt, metrics=['accuracy'])
+        #print(model.summary())
+        history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)
+        """
+        model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=False, kernel_initializer='glorot_uniform'))
+        model.add(Dropout(0.1))
         model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
         model.add(Dropout(0.1))
-
         model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
         model.add(Dropout(0.1))
-
         model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
         model.add(Dropout(0.1))
-
         model.add(Dense(64, activation='relu', kernel_initializer='uniform'))
         model.add(Dropout(0.1))
-
         model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
-        #model.add(Dense(1, activation='sigmoid'))
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        #print(model.summary())
         history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
+
         # Final evaluation of the model
+        """
         score = model.evaluate(X_test, y_test, verbose=0)
 
 
@@ -117,11 +179,12 @@ class GenerateModel:
             'score' : score,
             'matrix':confusion_matrix
         }
-        
+        """
         joblib.dump(scaler,"/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/scaler_"+name_value[:-4]+".bin",compress=True)
         model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5")
 
-        return scores
+        #return scores
+        return True
 
 
 if __name__ == "__main__":
@@ -130,7 +193,7 @@ if __name__ == "__main__":
 
     #NoAttack
     AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv",]
-    #AllValues = ["KFdistance.csv",  "Rdistance.csv"]
+    #AllValues = ["V2XKFdistance.csv"]
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)
@@ -141,12 +204,12 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(num_workers, generator.init_worker)
 
     scores = pool.map(generator.train_model, params)
-
+    """
     for score in scores:
         print("------------------",score['name'],"----------------------")
         print(score['matrix'])
         print(score['score'])
-
+    """
     #print(scores)
 
     print("--- %s s ---" % ((time.time() - start_time)))

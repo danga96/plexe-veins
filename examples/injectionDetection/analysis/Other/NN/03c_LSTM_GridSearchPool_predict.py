@@ -6,11 +6,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from keras.utils import np_utils
+from sklearn.utils import shuffle
 from keras.models import Sequential
 from keras.layers import Dropout
 from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers import LSTM
+from keras.layers import GRU
 from keras.layers import SimpleRNN
 from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
@@ -37,18 +39,20 @@ class FindModel:
 
         #print("--------------------------------------------",name_value,"-------------------------------------")
         value_data = pd.read_csv(base_path+name_value)
+        value_data = shuffle(value_data)
         X = value_data.drop(['Detection'], axis=1).values
         Y = value_data["Detection"].values
-
-        X_train, X_test, self.y_train, self.y_test = train_test_split(X, Y, test_size = 0.3, shuffle=True)
+        X_train = X
+        self.y_train = Y
+        #X_train, X_test, self.y_train, self.y_test = train_test_split(X, Y, test_size = 0.3, shuffle=True)
 
 
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
+        #X_test = scaler.transform(X_test)
 
         
-        self.X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
+        #self.X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
 
         self.X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
         #print("Shape X:",X.shape," X_train", self.X_train[name_value].shape, " ", self.X_train[name_value])
@@ -86,9 +90,9 @@ class FindModel:
         init_mode='glorot_uniform'
         """
         X_train = self.X_train
-        X_test = self.X_test
+        #X_test = self.X_test
         y_train = self.y_train
-        y_test = self.y_test
+        #y_test = self.y_test
 
         lstm_layer = list(map(int,conf[0].split(',')))
         epochs = int(conf[1])
@@ -108,21 +112,19 @@ class FindModel:
         first_layer_size_LSTM= 16 if lstm_layer==0 else lstm_layer[0]
         last_layer_size_LSTM = 16 if lstm_layer==0 else lstm_layer[-1]
         model = Sequential()
-        model.add(LSTM(first_layer_size_LSTM, input_shape=(10,1), kernel_initializer=init_mode, activation=activation, return_sequences=True))
+        model.add(GRU(first_layer_size_LSTM, input_shape=(10,1), kernel_initializer=init_mode, activation=activation, return_sequences=True if len(lstm_layer)>1 else False))
         model.add(Dropout(dropout_rate))
 
-        print("FISR:",first_layer_size_LSTM," LASST:",last_layer_size_LSTM)
+        #print("FISR:",first_layer_size_LSTM," LASST:",last_layer_size_LSTM)
 
         for layer_size in lstm_layer[1:-1]:
-            print("IIIIIIIIIIIIINNNNNNNNNNNNNNNNN           FFFFFFFFFFFOOOOOOOOOOOORRRRRRRRRRR")
-            model.add(LSTM(layer_size, kernel_initializer=init_mode, activation= activation, return_sequences=True))
+            #print("IIIIIIIIIIIIINNNNNNNNNNNNNNNNN           FFFFFFFFFFFOOOOOOOOOOOORRRRRRRRRRR")
+            model.add(GRU(layer_size, kernel_initializer=init_mode, activation= activation, return_sequences=True))
             model.add(Dropout(dropout_rate))
 
-        model.add(LSTM(last_layer_size_LSTM, kernel_initializer=init_mode, activation= activation))
-        model.add(Dropout(dropout_rate))
-
-        model.add(Dense(512, kernel_initializer=init_mode, activation= activation))
-        model.add(Dropout(dropout_rate))
+        if len(lstm_layer) >= 2 :
+            model.add(GRU(last_layer_size_LSTM, kernel_initializer=init_mode, activation= activation))
+            model.add(Dropout(dropout_rate))
 
         model.add(Dense(64, kernel_initializer=init_mode, activation= activation))
         model.add(Dropout(dropout_rate))
@@ -133,17 +135,18 @@ class FindModel:
         model.compile(loss='binary_crossentropy', optimizer=_optimizer, metrics=['accuracy'])
         #print(model.summary())
         history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=0)
+        
         # Final evaluation of the model
-        score = model.evaluate(X_test, y_test, verbose=0)
+        #score = model.evaluate(X_test, y_test, verbose=0)
 
 
-        Y_pred = model.predict(X_test)
-        Y_pred_round = [1 * (x[0]>=0.5) for x in Y_pred]
-        confusion_matrix = metrics.confusion_matrix(y_test, Y_pred_round)
+        #Y_pred = model.predict(X_test)
+        #Y_pred_round = [1 * (x[0]>=0.5) for x in Y_pred]
+        #confusion_matrix = metrics.confusion_matrix(y_test, Y_pred_round)
         scores = {
             'conf' : conf,
-            'score' : score,
-            'matrix':confusion_matrix
+            'accuracy' : history.history['accuracy'],
+            'loss' : history.history['loss']
         }
         
         #model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5")
@@ -157,7 +160,7 @@ if __name__ == "__main__":
 
     #NoAttack
     #AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv",]
-    name_value = "KFdistance.csv"
+    name_value = "V2XKFdistance.csv"
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = FindModel(train_path, name_value)
@@ -183,24 +186,24 @@ if __name__ == "__main__":
     
     #########################(START) test one_by_one###########################################
     #dense_size_candidates = ['256,128,64', '32', '512,256,128,64', '256,128,128,64']
-    lstm_size_candidates = ['256,128,64']
-    epochs = [5]
-    batch_size = [16,32]    
+    lstm_size_candidates = ['128']
+    epochs = [1]
+    batch_size = [32]    
     # Use scikit-learn to grid search 
-    activation =  ['relu','tanh']
-    learn_rate = [0.001, 0.01]
-    dropout_rate = [0.8]
-    init = ['uniform', 'normal', 'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform']
-    optimizer = [ 'SGD']
+    activation =  ['relu']
+    learn_rate = [0.001]
+    dropout_rate = [0.1]
+    init = ['uniform']
+    optimizer = ['Adam']
     #########################(END) test one_by_one#############################################
     
 
 
-    configurations = np.array(np.meshgrid(lstm_size_candidates, dropout_rate)).T.reshape(-1,2)
+    configurations = np.array(np.meshgrid(lstm_size_candidates,epochs,batch_size,activation,learn_rate,dropout_rate,init,optimizer)).T.reshape(-1,8)
     print("CONFIGURATIONS: ",configurations,"\n",configurations.shape)
     time.sleep(2)
 
-    num_workers = 4
+    num_workers = 1
     params = configurations
 
     pool = multiprocessing.Pool(num_workers, generator.init_worker)
@@ -208,22 +211,11 @@ if __name__ == "__main__":
     scores = pool.map(generator.train_model, params)
 
     #########################FIND BEST CONFIGURATIONS#############################################
-    best = sys.maxsize
-    conf_best = ''
-    matrix_best = []
+
     for score in scores:
         print("------------------",score['conf'],"------------------")
-        print(score['matrix'])
-        print(score['score'])
-        test = score['matrix'][0][1] + score['matrix'][1][0]
-
-        if test < best :
-            best = test
-            conf_best = score['conf']
-            matrix_best = score['matrix']
-
-    print("------------------------------------BEST CONFIGURATIONS")
-    print(conf_best,"\n",matrix_best)
+        print("------------------",score['accuracy'],"------------------",score['loss'])
+       
 
     #print(scores)
 

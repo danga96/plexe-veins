@@ -40,7 +40,7 @@ class DataTuning:
         attack_lists = (DB_values.attack.unique())
         _attacks = len(attack_lists)        
 
-        for attack_index, attack in enumerate(attack_lists[1:]):#per ogni attacco
+        for attack_index, attack in enumerate(attack_lists):#per ogni attacco
             print("-----------------------------------------------------------------------------------------------------------",attack)
             self.DB_values_test = pd.DataFrame(columns=col_test)
             self.attack_data = grouped.get_group(attack)

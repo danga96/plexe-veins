@@ -75,9 +75,10 @@ class DataAnalysis:
                 #if name_value != 'Rdistance':
                 #if name_value != 'RKFdistance':
                 #if name_value != 'RV2Xspeed':
-                if name_value != 'RKFspeed':
+                #if name_value != 'RKFspeed':
+                #if name_value != 'KFspeed':
                 #if name_value == 'RKFdistance': 
-                #if name_value == 'Rdistance': 
+                if name_value == 'Rdistance': 
                 #if name_value == 'KFdistance': 
                     continue
                 if name_value[0]=='R' and self.w_radar is False: #remove radar Value
@@ -90,7 +91,7 @@ class DataAnalysis:
                 X_test = self.scaler[name_value].transform(X_test)
                 X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
                 Y_pred = self.model[name_value].predict(X_test)
-                Y_pred_round = [1 * (x[0]>=0.80) for x in Y_pred]
+                Y_pred_round = [1 * (x[0]>=0.95) for x in Y_pred]
                 """
                 for i in range(len(Y_pred[:-2])):
                     if Y_pred[i]>=0.80 and Y_pred[i+1]>=Y_pred[i]:
@@ -121,30 +122,44 @@ class DataAnalysis:
                 """
 
                 early_detect = np.where(DF_single_value['Pred']>DF_single_value['Detection'])[0]
+                #print("Early detect",early_detect, end='\t')
                 #print("PRED:\n",DF_single_value['Pred'],"Det: \n",DF_single_value['Detection'])
+                """
+                for time in early_detect:
+                    if time > 100:
+                        early_detect[0] = time
+                        break
+                """
+                ##early_detect = early_detect[early_detect>100] #rimuove le DETECTION prima dei 100 secondi
+                
+                #print("Early",early_detect)
                 #exit()
+                
+                    
                 if len(early_detect)>0 and DF_single_value.iloc[early_detect[0]]['Time'] < DF_single_value.iloc[early_detect[0]]['Start']:
                     
                     if DF_single_value.iloc[early_detect[0]]['Time'] < 10:
                         soon_detect += 1
+                    else:
                     #else:
                     #    print(DF_single_value.iloc[early_detect[0]]['Time']," ",name_value," ",DF_single_value.iloc[early_detect[0]]['Start'])
                     #fake_detect += 1
-                    who_is_fp[name_value] += 1
-                    flag_fake_detect = True
-                    break
+                        who_is_fp[name_value] += 1
+                        flag_fake_detect = True
+                        break
                 
 
                 detection = np.where((DF_single_value['Pred'].astype(int)&DF_single_value['Detection'].astype(int))==1)[0]
                 if len(early_detect)>0:
                     #print("Detection_first",detection)
-                    detection = early_detect #se sono qui => c'è stata una predizione di un attacco, successivo a Start
+                    detection = early_detect #se sono qui => c'è stata una predizione di un attacco, successivo a Start (0 1)
                     #print("Detection_second",detection)
                     #exit()
                 #print(detection)
                 if len(detection)>0:
                     delay_single_value = (DF_single_value.iloc[detection[0]]['Time']) - (DF_single_value.iloc[detection[0]]['Start'])
-                    #print(DF_single_value.iloc[detection[0]]['Time']," ",name_value," ",DF_single_value.iloc[detection[0]]['Start'],simulation_index)
+                    #if "NoInjection" in attack:
+                    #    print(DF_single_value.iloc[detection[0]]['Time']," ",name_value," ",DF_single_value.iloc[detection[0]]['Start'],simulation_index)
                     #print(np.array(DF_single_value['Pred']))
                     #for i in range(len(Y_pred)):
                     #    print(" ",Y_pred[i],"\t",Y_pred_round[i])
@@ -196,7 +211,7 @@ if __name__ == "__main__":
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
     #AllAttacks = ["{}NoInjection.csv".format(scenario),"{}SpeedInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
-    #AllAttacks = ["{}NoInjection.csv".format(scenario)]
+    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     
     analyzer = DataAnalysis(model_path,test_path,AllAttacks[0])
 

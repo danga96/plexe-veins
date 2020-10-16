@@ -109,7 +109,6 @@ CONFIGURAZIONE 1 - SHUFFLE OFF
         --- 293.71101474761963 s ---
 
 
-
     RISULTATI da "04_NN_MyPrintResult.py" (con 100 simulazioni di test per ogni attacco, NO: RADAR):
 
         -------------  RandomNoInjection.csv  (TOT_SIM:  100 ) --------------------- 199

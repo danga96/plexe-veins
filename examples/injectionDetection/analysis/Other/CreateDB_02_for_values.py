@@ -247,6 +247,12 @@ class InjectionDetectionAnalyzer:
         #_lines.append(self._plot_detection_line(ax, "C7", "Radar-KF speed" if legend else None, **_data))
         #print("Radar-KF speed",_data["thresholds"][-1])
 
+        # KF Speed
+        _data.append( {
+            "name": 'KFspeed',
+            "values": InjectionDetectionAnalyzer.__running_avg(_kf_relative_speed, _window),
+        })
+
         value_for_sim = self._get_value_for_sim(_data, _sampling_times)
         return value_for_sim
 
@@ -346,11 +352,14 @@ class InjectionDetectionAnalyzer:
 
     @staticmethod
     def __running_avg(array, window, return_std=False):
+        w = np.arange(1/window, 1+1/window, 1/window)
         _avg = np.zeros(len(array))
         _std = np.zeros(len(array))
         for _i in range(len(array)):
             _win = min(_i, window - 1)
-            _avg[_i] = np.mean(array[_i - _win:_i + 1])
+            #_avg[_i] = np.mean(array[_i - _win:_i + 1])
+            temp_data = array[_i - _win:_i + 1]
+            _avg[_i] = np.average(temp_data, weights=w[-len(temp_data):])
             _std[_i] = np.std(array[_i - _win:_i + 1])
         return (_avg, _std) if return_std else _avg
 
@@ -413,7 +422,7 @@ if __name__ == "__main__":
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[:5]
+        sim_lists = sorted(test_data.run.unique())
         _simulations = len(sim_lists)
 
         NoInjection = "NoInjection" in attack

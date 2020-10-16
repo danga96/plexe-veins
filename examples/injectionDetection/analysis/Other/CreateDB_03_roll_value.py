@@ -16,7 +16,10 @@ col_test = ['v9', 'v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2', 'v1', 'v0','Run','Ti
 train_simulation = 100
 
 window = 10
-#TODO: se si modifica window, occorre modificare anche le colonne di "col_train" e "col_test"
+#ATTENZIONE: se si modifica window, occorre modificare anche le colonne di "col_train" e "col_test"
+
+th_attack = 1.4
+#soglia per evitare che si classifichino come attacchi anche i valori che in realtà non variano dopo un attacco
 
 class DataTuning:
 
@@ -86,6 +89,7 @@ class DataTuning:
 
     def split_and_tuning(self, is_train):
         global window
+        global th_attack
         self.attack_start = self.simulation_data['start'].iloc[0]
         #print("SIMULATION\n",self.simulation_data)
         #sampling_times = np.fromstring(self.simulation_data['time'].iloc[0].str.get(0), sep=' ')
@@ -110,10 +114,12 @@ class DataTuning:
             #data = self.simulation_data['value'].iloc[i]
             data_re = data.reshape(len(data),1)
             #print("Name_value",name_value," DATA: ", data, " MAX:", np.abs(data)[100:].max(), "mean: ", np.abs(data[100]), "sub: ",np.abs(data)[100:].max() - np.abs(data[100]))
-            if (np.abs(data)[100:].max() - np.abs(data[100])) < 2:
+            if (np.abs(data)[100:].max() - np.abs(data[100])) < (th_attack if (name_value != 'V2XKFspeed' and name_value != 'KFspeed') else 0.31):#prende il massimo dal decimo secondo e lo confronta con il decimo stesso
                 self.flag_not_diverge = True
             #exit()
             #print(data_re.shape,len(data_re),type(data_re))
+            #if name_value == 'KFspeed' or name_value == 'V2XKFspeed':
+            #    print("diff:",np.abs(data)[100:].max() - np.abs(data[100])," flag", self.flag_not_diverge, name_value)
             
             data_supervised = self.series_to_supervised(data.reshape(len(data),1),n_in=window-1)
             #print(data_supervised)

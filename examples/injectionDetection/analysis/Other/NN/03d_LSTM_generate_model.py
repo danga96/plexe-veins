@@ -79,8 +79,8 @@ class GenerateModel:
 
         X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
         
-        #print("shape_X",X_train.shape,"shape_Y",y_train.shape)
-
+        #print("shape_X",X_train.shape,"shape_Y",y_train.shape,"\n")
+        
         model = Sequential()
         """
         model.add(LSTM(64, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=True))
@@ -152,6 +152,9 @@ class GenerateModel:
         #print(model.summary())
         history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)
         """
+
+        """
+        #----------------------CONF 1------------------------------
         model.add(GRU(128, input_shape=(X_train.shape[1:]), activation='relu', return_sequences=False, kernel_initializer='glorot_uniform'))
         model.add(Dropout(0.1))
         model.add(Dense(512, activation='relu', kernel_initializer='uniform'))
@@ -164,7 +167,34 @@ class GenerateModel:
         model.add(Dropout(0.1))
         model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
+        history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)   
+        #----------------------END CONF 1----------------------
+        """
+        model.add(GRU(64, activation='relu', return_sequences=True, kernel_initializer='uniform'))		
+        model.add(Dropout(0.2))
+        model.add(GRU(32, activation='relu', return_sequences=False, kernel_initializer='uniform'))		
+        model.add(Dropout(0.2))
+        model.add(Flatten())
+        model.add(Dense(32, activation='relu', kernel_initializer='uniform'))
+        model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)
+    
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
 
         # Final evaluation of the model
         """
@@ -192,8 +222,9 @@ if __name__ == "__main__":
     scenario = "Random" #Constant
 
     #NoAttack
-    AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv",]
-    #AllValues = ["V2XKFdistance.csv"]
+    AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv","KFspeed.csv"]
+    #AllValues = ["KFdistance.csv","V2XKFdistance.csv", "V2XKFspeed.csv"]
+    AllValues = ["Rdistance.csv"]
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)

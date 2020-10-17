@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from keras.utils import np_utils
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.layers import Dropout
-from keras.layers import Dense
+from keras.layers import Input, Dense
 from keras.layers import Flatten
 from keras.layers import LSTM
 from keras.layers import GRU
@@ -170,6 +170,7 @@ class GenerateModel:
         history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)   
         #----------------------END CONF 1----------------------
         """
+
         model.add(GRU(64, activation='relu', return_sequences=True, kernel_initializer='uniform'))		
         model.add(Dropout(0.2))
         model.add(GRU(32, activation='relu', return_sequences=False, kernel_initializer='uniform'))		
@@ -178,21 +179,22 @@ class GenerateModel:
         model.add(Dense(32, activation='relu', kernel_initializer='uniform'))
         model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)
-    
-
-
-
-
-
-
-
-
-
-
-
+        history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
  
-
+        
+        """
+        inputs = Input(shape=(10,1))
+        L1r = GRU(64, activation='relu', return_sequences=True, kernel_initializer='uniform')(inputs)
+        L1rd = Dropout(0.2)(L1r)
+        L2r = GRU(32, activation='relu', return_sequences=False, kernel_initializer='uniform')(L1rd)
+        L2rd = Dropout(0.2)(L2r)
+        Fl = Flatten()(L2rd)
+        L1 = Dense(32, activation='relu', kernel_initializer='uniform')(Fl)
+        predictions = Dense(1, activation='sigmoid', kernel_initializer='uniform')(L1)
+        model = Model(inputs=inputs, outputs=predictions)
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        model.fit(X_train,y_train, epochs=1, batch_size=32)
+        """
 
 
 
@@ -211,6 +213,7 @@ class GenerateModel:
         }
         """
         joblib.dump(scaler,"/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/scaler_"+name_value[:-4]+".bin",compress=True)
+        #model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5", include_optimizer=False)
         model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5")
 
         #return scores
@@ -224,7 +227,7 @@ if __name__ == "__main__":
     #NoAttack
     AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv","KFspeed.csv"]
     #AllValues = ["KFdistance.csv","V2XKFdistance.csv", "V2XKFspeed.csv"]
-    AllValues = ["Rdistance.csv"]
+    AllValues = ["V2XKFdistance.csv"]
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)

@@ -97,10 +97,8 @@ double RandomScenario::drawAcceleration(double currentSpeed) const
 {
     double choice = uniform(0, 1);
 
-    double correctedAccelerationProbability = currentSpeed < avgSpeed ? accelerationProbability :
-            accelerationProbability * (maxSpeed - currentSpeed) / (maxSpeed - avgSpeed);
-    double correctedDecelerationProbability = currentSpeed > 0.25 * avgSpeed ? decelerationProbability :
-            decelerationProbability * (currentSpeed) / (0.25 * avgSpeed);
+    double correctedAccelerationProbability = currentSpeed < avgSpeed ? accelerationProbability : accelerationProbability * (maxSpeed - currentSpeed) / (maxSpeed - avgSpeed);
+    double correctedDecelerationProbability = currentSpeed > 0.25 * avgSpeed ? decelerationProbability : decelerationProbability * (currentSpeed) / (0.25 * avgSpeed);
 
     // Acceleration
     if (choice < correctedAccelerationProbability) {

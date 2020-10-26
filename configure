@@ -46,4 +46,8 @@ f.close()
 
 subprocess.check_call(['env', 'opp_makemake'] + makemake_flags, cwd='src')
 
+# Workaround to force building with -std=c++14
+sed_flags = [ '-i', '/^include $(CONFIGFILE)/aCXXFLAGS=-std=c++14', 'Makefile' ]
+subprocess.check_call(['env', 'sed'] + sed_flags, cwd='src')
+
 info('Configure done. You can now run "make".')

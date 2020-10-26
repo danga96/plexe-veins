@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
-
+#include <fdeep/fdeep.hpp>
 #include "veins/modules/application/platooning/detection/BeaconAnalyzer.h"
 
-BeaconAnalyzer::BeaconAnalyzer(const PlatooningParameters& platooningParameters, const DetectionParameters& detectionParameters,
-                               const std::map<Plexe::VEHICLE_SENSORS, SensorParameters*>& sensorParameters, double qFactor)
+BeaconAnalyzer::BeaconAnalyzer(const PlatooningParameters& platooningParameters, const DetectionParameters& detectionParameters, const std::map<Plexe::VEHICLE_SENSORS, SensorParameters*>& sensorParameters, double qFactor)
     : platooningParameters(platooningParameters)
     , kfPredecessorTime(0)
     , kfFollowerTime(0)
@@ -62,14 +61,7 @@ bool BeaconAnalyzer::attackDetected() const
 
 int BeaconAnalyzer::attackDetectedType() const
 {
-    return
-        (distanceKFDetector->attackDetected() ? 1 : 0) +
-        (distanceV2XKFDetector->attackDetected() ? 2 : 0) +
-        (speedV2XKFDetector->attackDetected() ? 4 : 0) +
-        (distanceRadarDetector->attackDetected() ? 8 : 0) +
-        (distanceRadarKFDetector->attackDetected() ? 16 : 0) +
-        (speedRadarV2XDetector->attackDetected() ? 32 : 0) +
-        (speedRadarKFDetector->attackDetected() ? 64 : 0);
+    return (distanceKFDetector->attackDetected() ? 1 : 0) + (distanceV2XKFDetector->attackDetected() ? 2 : 0) + (speedV2XKFDetector->attackDetected() ? 4 : 0) + (distanceRadarDetector->attackDetected() ? 8 : 0) + (distanceRadarKFDetector->attackDetected() ? 16 : 0) + (speedRadarV2XDetector->attackDetected() ? 32 : 0) + (speedRadarKFDetector->attackDetected() ? 64 : 0);
 }
 
 void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData)
@@ -79,10 +71,9 @@ void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData
     }
 }
 
-void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData,
-                            const std::shared_ptr<Plexe::VEHICLE_DATA>& follData,
-                            const std::shared_ptr<Plexe::RADAR_READING>& radarReading)
+void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData, const std::shared_ptr<Plexe::VEHICLE_DATA>& follData, const std::shared_ptr<Plexe::RADAR_READING>& radarReading)
 {
+
     // Update the position of the predecessor depending on the time elapsed between the reception of the two beacons
     predData->positionX += predData->speed * (follData->time - predData->time);
 
@@ -98,9 +89,8 @@ void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData
 
     // V2X Distance - KF Distance
     distanceV2XKFAvg->addValue(v2xDistance - kfDistance);
-    /*bool var = */distanceV2XKFDetector->update(distanceV2XKFAvg->getRunningAverage(),
-                                  predEstimation.second(0, 0), follEstimation.second(0, 0));
-    //std::cout<<"Time "<<simTime().dbl()<<" pred: "<<predEstimation.first(0)<<" foll: "<<follEstimation.first(0)<<" var:"<<var<<endl;
+    /*bool var = */ distanceV2XKFDetector->update(distanceV2XKFAvg->getRunningAverage(), predEstimation.second(0, 0), follEstimation.second(0, 0));
+    // std::cout<<"Time "<<simTime().dbl()<<" pred: "<<predEstimation.first(0)<<" foll: "<<follEstimation.first(0)<<" var:"<<var<<endl;
     // V2X Speed - KF Speed
     speedV2XKFAvg->addValue(predData->speed - predEstimation.first(1));
     speedV2XKFDetector->update(speedV2XKFAvg->getRunningAverage(), predEstimation.second(1, 1), follData->acceleration);
@@ -108,11 +98,10 @@ void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData
     if (radarReading && radarReading->valid()) {
         // Radar Distance
         distanceRadarDetector->update(radarReading->distance - expectedDistance, expectedDistance);
-        
+
         // Radar Distance - KF Distance
         distanceRadarKFAvg->addValue(radarReading->distance - kfDistance + predData->length);
-        distanceRadarKFDetector->update(distanceRadarKFAvg->getRunningAverage(),
-                                        predEstimation.second(0, 0), follEstimation.second(0, 0));
+        distanceRadarKFDetector->update(distanceRadarKFAvg->getRunningAverage(), predEstimation.second(0, 0), follEstimation.second(0, 0));
 
         double relativeSpeedV2X = predData->speed - follData->speed;
         double relativeSpeedKF = predEstimation.first(1) - follEstimation.first(1);
@@ -123,8 +112,7 @@ void BeaconAnalyzer::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predData
 
         // Radar Speed - KF Speed
         speedRadarKFAvg->addValue(radarReading->relativeSpeed - relativeSpeedKF);
-        speedRadarKFDetector->update(speedRadarKFAvg->getRunningAverage(), predEstimation.second(1, 1),
-                                     follEstimation.second(1, 1), follData->acceleration);
+        speedRadarKFDetector->update(speedRadarKFAvg->getRunningAverage(), predEstimation.second(1, 1), follEstimation.second(1, 1), follData->acceleration);
     }
 }
 
@@ -138,26 +126,16 @@ void BeaconAnalyzer::initializeDistanceDetectors(const DetectionParameters& dete
     //------------right elements of inequalities (distance)
     auto attackTolerance = detectionParameters.attackTolerance;
 
-    auto distanceKFDetectorTh = [detectionParameters](double expectedDistance){
-        return detectionParameters.distanceKFThresholdFactor * expectedDistance;
-    };
+    auto distanceKFDetectorTh = [detectionParameters](double expectedDistance) { return detectionParameters.distanceKFThresholdFactor * expectedDistance; };
     distanceKFDetector = std::make_shared<DistanceDetectorType1>(distanceKFDetectorTh, attackTolerance);
 
-    auto distanceRadarDetectorTh = [detectionParameters](double expectedDistance){
-        return detectionParameters.distanceRadarThresholdFactor * expectedDistance;
-    };
+    auto distanceRadarDetectorTh = [detectionParameters](double expectedDistance) { return detectionParameters.distanceRadarThresholdFactor * expectedDistance; };
     distanceRadarDetector = std::make_shared<DistanceDetectorType1>(distanceRadarDetectorTh, attackTolerance);
 
-    auto distanceV2XKFDetectorTh = [detectionParameters](double kfVariancePred, double kfVarianceFoll){
-        return 3 * (std::sqrt(kfVariancePred) + std::sqrt(kfVarianceFoll)) *
-               detectionParameters.distanceV2XKFThresholdFactor;
-    };
+    auto distanceV2XKFDetectorTh = [detectionParameters](double kfVariancePred, double kfVarianceFoll) { return 3 * (std::sqrt(kfVariancePred) + std::sqrt(kfVarianceFoll)) * detectionParameters.distanceV2XKFThresholdFactor; };
     distanceV2XKFDetector = std::make_shared<DistanceDetectorType2>(distanceV2XKFDetectorTh, attackTolerance);
 
-    auto distanceRadarKFDetectorTh = [radarDistanceError, detectionParameters](double kfVariancePred, double kfVarianceFoll){
-        return (radarDistanceError + 3 * (std::sqrt(kfVariancePred) + std::sqrt(kfVarianceFoll))) *
-               detectionParameters.distanceRadarKFThresholdFactor;
-    };
+    auto distanceRadarKFDetectorTh = [radarDistanceError, detectionParameters](double kfVariancePred, double kfVarianceFoll) { return (radarDistanceError + 3 * (std::sqrt(kfVariancePred) + std::sqrt(kfVarianceFoll))) * detectionParameters.distanceRadarKFThresholdFactor; };
     distanceRadarKFDetector = std::make_shared<DistanceDetectorType2>(distanceRadarKFDetectorTh, attackTolerance);
 }
 
@@ -166,29 +144,17 @@ void BeaconAnalyzer::initializeSpeedDetectors(const DetectionParameters& detecti
     //------------right elements of inequalities (speed)
     auto attackTolerance = detectionParameters.attackTolerance;
 
-    auto speedV2XKFDetectorTh = [speedError, detectionParameters](double kfVariance, double acceleration){
-        return detectionParameters.speedV2XKFThresholdFactor * (speedError + std::sqrt(kfVariance) * 3) *
-               (1 + std::abs(acceleration) * detectionParameters.accelerationFactor);
-    };
+    auto speedV2XKFDetectorTh = [speedError, detectionParameters](double kfVariance, double acceleration) { return detectionParameters.speedV2XKFThresholdFactor * (speedError + std::sqrt(kfVariance) * 3) * (1 + std::abs(acceleration) * detectionParameters.accelerationFactor); };
     speedV2XKFDetector = std::make_shared<SpeedDetectorType1>(speedV2XKFDetectorTh, attackTolerance);
 
-    auto speedRadarV2XDetectorTh = [speedError, radarSpeedError, detectionParameters](double acceleration){
-        return detectionParameters.speedRadarV2XThresholdFactor * (radarSpeedError + 2*speedError) *
-               (1 + std::abs(acceleration) * detectionParameters.accelerationFactor);
-    };
+    auto speedRadarV2XDetectorTh = [speedError, radarSpeedError, detectionParameters](double acceleration) { return detectionParameters.speedRadarV2XThresholdFactor * (radarSpeedError + 2 * speedError) * (1 + std::abs(acceleration) * detectionParameters.accelerationFactor); };
     speedRadarV2XDetector = std::make_shared<SpeedDetectorType2>(speedRadarV2XDetectorTh, attackTolerance);
 
-    auto speedRadarKFDetectorTh = [radarSpeedError, detectionParameters](
-            double kfVariancePred, double kfVarianceFoll, double acceleration){
-        return detectionParameters.speedRadarKFThresholdFactor *
-               (radarSpeedError + 3 * (std::sqrt(kfVariancePred) + std::sqrt(kfVarianceFoll))) *
-               (1 + std::abs(acceleration) * detectionParameters.accelerationFactor);
-    };
+    auto speedRadarKFDetectorTh = [radarSpeedError, detectionParameters](double kfVariancePred, double kfVarianceFoll, double acceleration) { return detectionParameters.speedRadarKFThresholdFactor * (radarSpeedError + 3 * (std::sqrt(kfVariancePred) + std::sqrt(kfVarianceFoll))) * (1 + std::abs(acceleration) * detectionParameters.accelerationFactor); };
     speedRadarKFDetector = std::make_shared<SpeedDetectorType3>(speedRadarKFDetectorTh, attackTolerance);
 }
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXd> BeaconAnalyzer::updateKalmanFilter(
-        const std::shared_ptr<Plexe::VEHICLE_DATA>& vehicleData, std::shared_ptr<KalmanFilter>& kalmanFilter, double& previousTime)
+std::pair<Eigen::VectorXd, Eigen::MatrixXd> BeaconAnalyzer::updateKalmanFilter(const std::shared_ptr<Plexe::VEHICLE_DATA>& vehicleData, std::shared_ptr<KalmanFilter>& kalmanFilter, double& previousTime)
 {
     double position = vehicleData->positionX;
     double speed = vehicleData->speed;

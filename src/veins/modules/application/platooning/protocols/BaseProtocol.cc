@@ -210,7 +210,8 @@ void BaseProtocol::sendPlatooningMessage(int destinationAddress)
     sendDown(unicast);
 }
 
-void BaseProtocol::logPlatooningBeacon(PlatooningBeacon* pb) {
+void BaseProtocol::logPlatooningBeacon(PlatooningBeacon* pb)
+{
     V2XPositionXOut.record(pb->getPositionX());
     V2XPositionYOut.record(pb->getPositionY());
     V2XSpeedOut.record(pb->getSpeed());
@@ -221,7 +222,8 @@ void BaseProtocol::logPlatooningBeacon(PlatooningBeacon* pb) {
     V2XTimeOut.record(pb->getTime());
 }
 
-void BaseProtocol::logRadarReadings() {
+void BaseProtocol::logRadarReadings()
+{
 
     double radarDistance, radarRelSpeed, samplingTime;
     traciVehicle->getRadarMeasurements(radarDistance, radarRelSpeed, samplingTime, true /* log the values with uncertainties */);

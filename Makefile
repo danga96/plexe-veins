@@ -7,6 +7,7 @@ else
     ADDL_TARGETS += run
 endif
 
+
 # default target
 all: src/Makefile $(ADDL_TARGETS)
 	@cd src && $(MAKE)

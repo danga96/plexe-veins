@@ -30,6 +30,7 @@ import tensorflow as tf
 import time
 import signal
 import multiprocessing
+from multiprocessing.pool import ThreadPool as Pool
 
 # fix random seed for reproducibility
 tf.random.set_seed(2)
@@ -69,10 +70,28 @@ class GenerateModel:
         #y_test = self.y_test[name_value]
 
         scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        #X_test = scaler.transform(X_test)
+        #print("X_Train_10", X_train[10])
+        X_one_column = X_train.reshape([-1,1])
+        result_one_column = scaler.fit_transform(X_one_column)
+        X_train = (X_train - scaler.mean_)/(scaler.var_**0.5)
 
+        f = open("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/scaler2_"+name_value[:-4]+".txt","w+")
+        f.write(str(round(scaler.mean_[0],7))+" "+str(round(scaler.var_[0]**0.5,7)))
+        #f.writelines([scaler.mean_+", ", scaler.var_]) 
+        f.close()
+
+
+        #X_train = result_one_column.reshape(X_train.shape)
+        #X_train = scaler.fit_transform(X_train)
+        #X_test = scaler.transform(X_test)
         
+        #print("X_Train_10", X_train[10])
+        #print("Mean scaler: ", scaler.mean_)
+        #print("Std scaler: ", scaler.var_**0.5)
+        #joblib.dump(scaler,"/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/scaler_"+name_value[:-4]+".bin",compress=True)
+        #exit()
+        #return True
+
         
         
         ##X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
@@ -170,7 +189,7 @@ class GenerateModel:
         history = model.fit(X_train, y_train, epochs=5, batch_size=32, verbose=1)   
         #----------------------END CONF 1----------------------
         """
-
+        """
         model.add(GRU(64, activation='relu', return_sequences=True, kernel_initializer='uniform'))		
         model.add(Dropout(0.2))
         model.add(GRU(32, activation='relu', return_sequences=False, kernel_initializer='uniform'))		
@@ -179,10 +198,10 @@ class GenerateModel:
         model.add(Dense(32, activation='relu', kernel_initializer='uniform'))
         model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=1)
- 
-        
+        history = model.fit(X_train, y_train, epochs=1, batch_size=32, verbose=0)
         """
+        
+        
         inputs = Input(shape=(10,1))
         L1r = GRU(64, activation='relu', return_sequences=True, kernel_initializer='uniform')(inputs)
         L1rd = Dropout(0.2)(L1r)
@@ -193,8 +212,8 @@ class GenerateModel:
         predictions = Dense(1, activation='sigmoid', kernel_initializer='uniform')(L1)
         model = Model(inputs=inputs, outputs=predictions)
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        model.fit(X_train,y_train, epochs=1, batch_size=32)
-        """
+        model.fit(X_train,y_train, epochs=5, batch_size=32)
+        
 
 
 
@@ -213,8 +232,8 @@ class GenerateModel:
         }
         """
         joblib.dump(scaler,"/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/scaler_"+name_value[:-4]+".bin",compress=True)
-        #model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5", include_optimizer=False)
-        model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5")
+        model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5", include_optimizer=False)
+        #model.save("/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/model_"+name_value[:-4]+".h5")
 
         #return scores
         return True
@@ -227,7 +246,7 @@ if __name__ == "__main__":
     #NoAttack
     AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv","KFspeed.csv"]
     #AllValues = ["KFdistance.csv","V2XKFdistance.csv", "V2XKFspeed.csv"]
-    AllValues = ["V2XKFdistance.csv"]
+    AllValues = ["V2XKFspeed.csv"]
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)
@@ -236,7 +255,7 @@ if __name__ == "__main__":
     params = AllValues
 
     pool = multiprocessing.Pool(num_workers, generator.init_worker)
-
+    #pool = Pool(num_workers)
     scores = pool.map(generator.train_model, params)
     """
     for score in scores:

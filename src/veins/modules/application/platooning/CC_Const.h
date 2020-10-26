@@ -88,7 +88,10 @@ struct RADAR_READING {
     double distance;
     double relativeSpeed;
 
-    bool valid() { return distance >= 0; }
+    bool valid()
+    {
+        return distance >= 0;
+    }
 };
 
 /**

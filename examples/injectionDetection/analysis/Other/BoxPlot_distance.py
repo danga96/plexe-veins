@@ -156,7 +156,7 @@ class InjectionDetectionAnalyzer:
         else:
             self.attack_start = None
 
-    def get_distance_feature(self,attack):
+    def get_distance_feature(self,attack,time_detect):
 
         self._expected_distance = []
         self._pred_kf_kfEstimatedSpeedVar = []
@@ -201,12 +201,17 @@ class InjectionDetectionAnalyzer:
         value_distance = _foll_data["RadarDistance"]
         max_distance = np.max(value_distance)
         min_distance = np.min(value_distance)
-
-
-
-
+        """
+        direct_index = int(time_detect/0.1-10)
+        print("Time detect: ", time_detect, "Distance in direct: ",value_distance[np.where(_sampling_times == time_detect)[0]])
+        print("Direct_index: ",direct_index, " Index CAL: ", np.where(_sampling_times == time_detect)[0])
+        print("LEN:",(_sampling_times))
+        exit()
+        """
+        wh = np.where(_sampling_times == time_detect)[0]
+        #print("MIN_distance: ", min_distance, " Detect distance: ", value_distance[wh[0]if len(wh) > 0 else 0])
         
-        return max_distance, min_distance
+        return value_distance[wh[0]if len(wh) > 0 else 0] if "NoInjection" not in attack else min_distance
 
     @staticmethod
     def __compensate_position(dt, position, speed, acceleration):
@@ -305,14 +310,14 @@ if __name__ == "__main__":
     controller = "CACC" #Test
 
     # base_path = os.path.join(base_path, controller)
-    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/"
+    test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/DB_Test/"
     #NoAttack
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
     AllAttacks = ["{}NoInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario)]
 
-    
+    DF_detect = pd.read_csv(test_path+'time_detect.csv')
     
     columns_max = [('%s%s' % (AllAttacks[x][6:-4],"_MAX")) for x in range(len(AllAttacks))]
     columns_min = [('%s%s' % (AllAttacks[x][6:-4],"_MIN")) for x in range(len(AllAttacks))]
@@ -326,20 +331,29 @@ if __name__ == "__main__":
         test_data = data_object.get_data()
         grouped = test_data.groupby("run")
                                                #Range [start:stop] -> [start,stop)
-        sim_lists = sorted(test_data.run.unique())[:5]
+        sim_lists = sorted(test_data.run.unique())
         _simulations = len(sim_lists)
         max_vector = []
         min_vector = []
         NoInjection = "NoInjection" in attack
 
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
+
+            if simulation[1] in DF_detect.Run:
+                continue
             print("-------------------------------------------------------------------------------------------",simulation, end='\r')
+
+            
+
             data = grouped.get_group(simulation)
             analyzer = InjectionDetectionAnalyzer(data, simulation_index, NoInjection)
            
-            max_distance,min_distance = analyzer.get_distance_feature(attack)
-            print("max: ",max_distance, "min: ",min_distance)
-            max_vector.append(max_distance)
+            time_detect = DF_detect.loc[DF_detect['Run'] == simulation[1], attack[6:-4]].values[0]
+
+            min_distance = analyzer.get_distance_feature(attack,time_detect)
+            #print("min: ",min_distance)
+            
+            #max_vector.append(max_distance)
             min_vector.append(min_distance)
 
         
@@ -351,8 +365,8 @@ if __name__ == "__main__":
             "min_distance": min_vector,
         })
         """
-        df[attack[6:-4]+'_MAX'] = max_vector
-        df[attack[6:-4]+'_MIN'] = min_vector
+        #df[attack[6:-4]+'_MAX'] = max_vector
+        df[attack[6:-4]] = min_vector
         
     
     print("----------------Feature-----------------\n")
@@ -364,7 +378,7 @@ if __name__ == "__main__":
     #data = [df[AllAttacks[x][:-4]+'_max'] for x in range(len(AllAttacks))]
     #data = [df[colums_max[x]] for x in range(len(colums_max))]
     fig, ax = plt.subplots()
-    ax.set_title('Multiple Samples with Different sizes')
+    ax.set_title('Distance in detection Time')
     boxplot = df.boxplot(grid=False)
     plt.show()
 

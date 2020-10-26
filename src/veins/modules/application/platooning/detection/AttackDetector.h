@@ -71,13 +71,12 @@ public:
         if (!attackDetected()) {
             if (std::abs(value) < thresholdFunction(args...)) {
                 attackCounter = 0;
-                std::cout<<"Value: "<<std::abs(value)<<" TH:"<<thresholdFunction(args...)<<" Attack_count: "<<attackCounter<<std::endl;
+                std::cout << "Value: " << std::abs(value) << " TH:" << thresholdFunction(args...) << " Attack_count: " << attackCounter << std::endl;
             }
             else {
                 attackCounter++;
-                std::cout<<"Value: "<<std::abs(value)<<" TH:"<<thresholdFunction(args...)<<" Attack_count: "<<attackCounter<<std::endl;
+                std::cout << "Value: " << std::abs(value) << " TH:" << thresholdFunction(args...) << " Attack_count: " << attackCounter << std::endl;
             }
-             
         }
 
         return attackDetected();

@@ -22,8 +22,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 from keras.models import load_model
 
+DF_detect = {}
+
 class DataAnalysis:
     def __init__(self, model_path, test_path, attack_temp):
+        global DF_detect
+        DF_detect = pd.DataFrame()
         self.w_radar = True
         self.model = {}
         self.scaler = {}
@@ -38,6 +42,7 @@ class DataAnalysis:
 
 
     def get_stats_attack(self, test_path, attack):
+        global DF_detect
         def _remove_negative(ds):
             return ds[ds > 0]
 
@@ -45,8 +50,12 @@ class DataAnalysis:
 
         grouped_attack = DF_attack.groupby("Run")
         sim_lists = sorted(DF_attack.Run.unique())
+
+        DF_detect = DF_detect.assign(Run = sim_lists)
+
         _simulations = len(sim_lists)
         attack_detect_delay = np.zeros( _simulations )
+        time_detect = np.zeros( _simulations )
         attack_detect = 0
         fake_detect = 0   
         soon_detect = 0 
@@ -58,6 +67,8 @@ class DataAnalysis:
 
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
             print("----------------------------------------------------------------------------",simulation, end='\r')
+            if simulation>100:
+                continue
             #print("--------",simulation, end='\r')
             data_attack = grouped_attack.get_group(simulation)
 
@@ -78,20 +89,26 @@ class DataAnalysis:
                 #if name_value != 'RKFspeed':
                 #if name_value != 'KFspeed':
                 #if name_value == 'RKFdistance': 
-                if name_value == 'Rdistance': 
+                #if name_value == 'Rdistance': 
                 #if name_value == 'KFdistance': 
-                    continue
+                #    continue
                 if name_value[0]=='R' and self.w_radar is False: #remove radar Value
                     continue
                 #print("---------------------------------------------",name_value)
                 data_value = grouped_values.get_group(name_value)
                 X_test = data_value.drop(['Run','Time','Start','Value','Detection'], axis=1).values
                 Y_test = data_value['Detection'].values
-
-                X_test = self.scaler[name_value].transform(X_test)
+                #print("nv: ", name_value, " \nXTEST: ",X_test[10])
+                #X_test = self.scaler[name_value].transform(X_test)
+                X_test = (X_test - self.scaler[name_value].mean_)/(self.scaler[name_value].var_**0.5)
+                #print("XTEST2: ",X_test[10])
+                #X_test = (X_test - self.scaler[name_value].mean_)/(self.scaler[name_value].var_**0.5)
+                
                 X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
                 Y_pred = self.model[name_value].predict(X_test)
                 Y_pred_round = [1 * (x[0]>=0.95) for x in Y_pred]
+                #print("\nY_pred",Y_pred[0:11],"\n")
+                #exit()
                 """
                 for i in range(len(Y_pred[:-2])):
                     if Y_pred[i]>=0.80 and Y_pred[i+1]>=Y_pred[i]:
@@ -106,6 +123,8 @@ class DataAnalysis:
                 """
                 DF_single_value = data_value[['Time','Start','Detection']]
                 DF_single_value = DF_single_value.assign(Pred = Y_pred_round) 
+                ##print(Y_pred, "\n\n", X_test[0])
+                ##exit()
                 #print("\nX_TEST",X_test[0],"\n")
                 #print("\nY_TEST",Y_test,"\n")
                 #print("\nDF_single_value\n",DF_single_value,"\n")
@@ -130,7 +149,7 @@ class DataAnalysis:
                         early_detect[0] = time
                         break
                 """
-                ##early_detect = early_detect[early_detect>100] #rimuove le DETECTION prima dei 100 secondi
+                early_detect = early_detect[early_detect>100] #rimuove le DETECTION prima dei 100 secondi
                 
                 #print("Early",early_detect)
                 #exit()
@@ -169,6 +188,7 @@ class DataAnalysis:
                     if delay_single_value < best_delay_values :
                         best_delay_values = delay_single_value
                         name_value_detected = name_value
+                        best_time_detect = DF_single_value.iloc[detection[0]]['Time']
                     #print("delay_single_value", delay_single_value, " best_delay_values", best_delay_values)
                 
             if flag_fake_detect :
@@ -177,6 +197,7 @@ class DataAnalysis:
             elif best_delay_values != 100:
                 attack_detect += 1
                 attack_detect_delay[simulation_index] = best_delay_values
+                time_detect[simulation_index] = best_time_detect
                 #print("WHO_detect",name_value_detected,best_delay_values)
                 who_is_tp[name_value_detected] += 1
             else:
@@ -198,6 +219,8 @@ class DataAnalysis:
         #for key,value in who_is_fp:
            # print(who_is_fp)
         #exit()
+
+        DF_detect[attack[6:-4]] = time_detect
                 
         
 
@@ -210,7 +233,7 @@ if __name__ == "__main__":
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    #AllAttacks = ["{}NoInjection.csv".format(scenario),"{}SpeedInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
+    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     
     analyzer = DataAnalysis(model_path,test_path,AllAttacks[0])
@@ -219,6 +242,8 @@ if __name__ == "__main__":
         print("--------------------------------------------",attack,"-------------------------------------")
         analyzer.get_stats_attack(test_path, attack)
 
+    print(DF_detect)
+    DF_detect.to_csv(test_path+'time_detect.csv',index=False, header=True)
     print("--- %s s ---" % ((time.time() - start_time)))
 
     exit()  

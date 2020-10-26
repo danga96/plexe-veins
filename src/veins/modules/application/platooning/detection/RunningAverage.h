@@ -32,6 +32,7 @@ public:
      */
     explicit RunningAverage(std::size_t size)
         : buffer(size, 0)
+        , bufferAvg(size, 0)
         , index(0)
         , elements(0)
     {
@@ -43,9 +44,21 @@ public:
      */
     void addValue(T value)
     {
-        buffer[index] = value;
-        index = (index + 1) % buffer.size();
+        // buffer[index] = value;
+        // index = (index + 1) % buffer.size();
+        std::rotate(buffer.begin(), buffer.begin() + 1, buffer.end());
+        buffer[buffer.size() - 1] = value;
         elements = elements == buffer.size() ? elements : elements + 1;
+    }
+
+    std::vector<T> getBuffer()
+    {
+        return buffer;
+    }
+
+    std::vector<T> getBufferAvg()
+    {
+        return bufferAvg;
     }
 
     /**
@@ -55,6 +68,26 @@ public:
     T getRunningAverage() const
     {
         return elements == 0 ? 0.0 : std::accumulate(buffer.begin(), buffer.end(), 0.0) / elements;
+    }
+    /**
+     * Returns the running average computed on the stored data
+     * @return the computed running average
+     */
+    std::vector<T> getRunningAverage_mod()
+    {
+        std::vector<double> w = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
+        double sum = 0;
+        int i;
+        for (i = 0; i < buffer.size() || i < 10; i++) {
+            sum += w[i] * buffer[i];
+            // std::cout<<buffer[i];
+        }
+        //std::cout<<"\nW_average"<<sum/5.5<<"i_out"<<i<<std::endl;
+
+        std::rotate(bufferAvg.begin(), bufferAvg.begin() + 1, bufferAvg.end());
+        bufferAvg[bufferAvg.size() - 1] = sum/5.5;
+
+        return bufferAvg;
     }
 
     /**
@@ -76,6 +109,7 @@ public:
 
 private:
     std::vector<T> buffer; // The buffer where the values are stored
+    std::vector<T> bufferAvg; 
     std::size_t index; // The index pointing to the next insertion position
     std::size_t elements; // The number of elements stored in the buffer
 };

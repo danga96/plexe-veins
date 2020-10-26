@@ -54,6 +54,9 @@ void InjectionDetectionApp::initialize(int stage)
         detectionParameters.speedRadarV2XThresholdFactor = par("speedRadarV2XThresholdFactor");
         detectionParameters.speedRadarKFThresholdFactor = par("speedRadarKFThresholdFactor");
 
+        detectionParameters.ML_model_path = par("ML_model_path").stdstringValue();
+        detectionParameters.ML_accuracy = par("ML_accuracy");
+
         qFactor = par("qFactor");
     }
 
@@ -65,13 +68,13 @@ void InjectionDetectionApp::initialize(int stage)
         }
 
         auto scenario = FindModule<BaseScenario*>::findSubModule(getParentModule());
-        BeaconAnalyzer::PlatooningParameters platooningParameters{
+        BeaconAnalyzerML::PlatooningParameters platooningParameters{
             .spacing = scenario->getSpacing(),
             .headway = scenario->getHeadway(),
         };
-
-        leaderDetection = std::make_shared<BeaconAnalyzer>(platooningParameters, detectionParameters, sensorParameters, qFactor);
-        predecessorDetection = std::make_shared<BeaconAnalyzer>(platooningParameters, detectionParameters, sensorParameters, qFactor);
+  
+        leaderDetection = std::make_shared<BeaconAnalyzerML>(platooningParameters, detectionParameters, sensorParameters, qFactor);
+        predecessorDetection = std::make_shared<BeaconAnalyzerML>(platooningParameters, detectionParameters, sensorParameters, qFactor);
     }
 }
 

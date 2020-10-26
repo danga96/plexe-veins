@@ -53,6 +53,10 @@ simple InjectionDetectionApp extends SimplePlatooningApp
         // The dividing factor used (squared) to construct the Q matrix from the R one
         double qFactor;
 
+        // ML_parameters
+        double ML_accuracy;
+        string ML_model_path;
+
         @display("i=block/app2");
         @class(InjectionDetectionApp);
 }

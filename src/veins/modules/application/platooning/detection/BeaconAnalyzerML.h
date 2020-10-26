@@ -15,18 +15,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef BEACONANALYZER_H
-#define BEACONANALYZER_H
+#ifndef BEACONANALYZERML_H
+#define BEACONANALYZERML_H
 
 #include <memory>
-
+#include <fdeep/fdeep.hpp>
 #include "veins/modules/application/platooning/CC_Const.h"
 #include "veins/modules/application/platooning/detection/AttackDetector.h"
+#include "veins/modules/application/platooning/detection/AttackDetectorML.h"
 #include "veins/modules/application/platooning/detection/KalmanFilter.h"
 #include "veins/modules/application/platooning/detection/RunningAverage.h"
 #include "veins/modules/application/platooning/sensors/SensorParameters.h"
 
-class BeaconAnalyzer {
+class BeaconAnalyzerML {
 
 public:
     struct PlatooningParameters {
@@ -38,6 +39,8 @@ public:
         std::size_t runningAvgWindow;
         std::size_t attackTolerance;
 
+        double ML_accuracy;
+
         double distanceKFThresholdFactor;
         double distanceRadarThresholdFactor;
         double distanceV2XKFThresholdFactor;
@@ -48,10 +51,12 @@ public:
         double speedRadarKFThresholdFactor;
 
         double accelerationFactor;
+
+        std::string ML_model_path;
     };
 
 public:
-    BeaconAnalyzer(const PlatooningParameters& platooningParameters, const DetectionParameters& detectionParameters, const std::map<Plexe::VEHICLE_SENSORS, SensorParameters*>& sensorParameters, double qFactor);
+    BeaconAnalyzerML(const PlatooningParameters& platooningParameters, const DetectionParameters& detectionParameters, const std::map<Plexe::VEHICLE_SENSORS, SensorParameters*>& sensorParameters, double qFactor);
 
     bool attackDetected() const;
     int attackDetectedType() const;
@@ -82,18 +87,21 @@ private:
     std::shared_ptr<KalmanFilter> kfPredecessor;
     std::shared_ptr<KalmanFilter> kfFollower;
 
+    std::shared_ptr<RunningAverage<double>> distanceKFAvg;
+    std::shared_ptr<RunningAverage<double>> distanceRadarAvg;
     std::shared_ptr<RunningAverage<double>> distanceV2XKFAvg;
     std::shared_ptr<RunningAverage<double>> distanceRadarKFAvg;
     std::shared_ptr<RunningAverage<double>> speedV2XKFAvg;
     std::shared_ptr<RunningAverage<double>> speedRadarV2XAvg;
     std::shared_ptr<RunningAverage<double>> speedRadarKFAvg;
+    std::shared_ptr<RunningAverage<double>> speedKFAvg;
 
     using DistanceDetectorType1 = AttackDetector<std::function<double(double)>>;
     using DistanceDetectorType2 = AttackDetector<std::function<double(double, double)>>;
     using SpeedDetectorType1 = AttackDetector<std::function<double(double, double)>>;
     using SpeedDetectorType2 = AttackDetector<std::function<double(double)>>;
     using SpeedDetectorType3 = AttackDetector<std::function<double(double, double, double)>>;
-
+    /*
     std::shared_ptr<DistanceDetectorType1> distanceKFDetector;
     std::shared_ptr<DistanceDetectorType1> distanceRadarDetector;
     std::shared_ptr<DistanceDetectorType2> distanceV2XKFDetector;
@@ -102,6 +110,18 @@ private:
     std::shared_ptr<SpeedDetectorType1> speedV2XKFDetector;
     std::shared_ptr<SpeedDetectorType2> speedRadarV2XDetector;
     std::shared_ptr<SpeedDetectorType3> speedRadarKFDetector;
+    */
+    //Machine Learning Detector
+    std::shared_ptr<AttackDetectorML> distanceKFDetectorML;
+    std::shared_ptr<AttackDetectorML> distanceV2XKFDetectorML;
+    std::shared_ptr<AttackDetectorML> distanceRadarDetectorML;
+    std::shared_ptr<AttackDetectorML> distanceRadarKFDetectorML;
+
+    std::shared_ptr<AttackDetectorML> speedV2XKFDetectorML;
+    std::shared_ptr<AttackDetectorML> speedRadarV2XDetectorML;
+    std::shared_ptr<AttackDetectorML> speedRadarKFDetectorML;
+    std::shared_ptr<AttackDetectorML> speedKFDetectorML;
+
 };
 
 #endif // BEACONANALYZER_H

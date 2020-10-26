@@ -21,7 +21,7 @@ clang-format --style "{ \
 	PointerAlignment: Left, \
 	SortIncludes: false, \
 	SpaceAfterCStyleCast: true, \
-	Standard: Cpp11, \
+	Standard: Auto, \
 	TabWidth: 4, \
 	UseTab: Never \
 }" -i "$@"
@@ -45,7 +45,7 @@ clang-format --style "{ \
 	PointerAlignment: Left, \
 	SortIncludes: false, \
 	SpaceAfterCStyleCast: true, \
-	Standard: Cpp11, \
+	Standard: Auto, \
 	TabWidth: 4, \
 	UseTab: Never \
 }" -i "$@"

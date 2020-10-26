@@ -19,7 +19,7 @@
 #define INJECTIONDETECTIONAPP_H_
 
 #include "veins/modules/application/platooning/apps/SimplePlatooningApp.h"
-#include "veins/modules/application/platooning/detection/BeaconAnalyzer.h"
+#include "veins/modules/application/platooning/detection/BeaconAnalyzerML.h"
 
 class InjectionDetectionApp : public SimplePlatooningApp {
 
@@ -36,8 +36,8 @@ protected:
     void switchToACC();
 
 protected:
-    std::shared_ptr<BeaconAnalyzer> leaderDetection;
-    std::shared_ptr<BeaconAnalyzer> predecessorDetection;
+    std::shared_ptr<BeaconAnalyzerML> leaderDetection;
+    std::shared_ptr<BeaconAnalyzerML> predecessorDetection;
 
     bool switchedToACC;
     double leaderAttackDetectedTime;
@@ -45,7 +45,7 @@ protected:
     double predecessorAttackDetectedTime;
     double predecessorAttackDetectedType;
 
-    BeaconAnalyzer::DetectionParameters detectionParameters;
+    BeaconAnalyzerML::DetectionParameters detectionParameters;
     double fallbackACCHeadway;
     double fallbackACCSafetyMargin;
     double qFactor;

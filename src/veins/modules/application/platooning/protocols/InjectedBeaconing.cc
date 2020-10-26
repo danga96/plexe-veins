@@ -19,7 +19,7 @@
 
 Define_Module(InjectedBeaconing)
 
-InjectedBeaconing::InjectedBeaconing() = default;
+    InjectedBeaconing::InjectedBeaconing() = default;
 InjectedBeaconing::~InjectedBeaconing() = default;
 
 void InjectedBeaconing::initialize(int stage)
@@ -68,12 +68,9 @@ PlatooningBeacon* InjectedBeaconing::generatePlatooningBeacon()
     if (coordinatedAttack) {
         // Inject both speed and position in a coordinated way with respect to acceleration
         double acceleration = beacon->getAcceleration();
-        beacon->setPositionX(computeInjectedValueFunction(beacon->getPositionX(), previousPositionX,
-                [this, acceleration](double dt) { return previousPositionX + dt * previousSpeed + 0.5 * dt * dt * acceleration; }));
-        beacon->setSpeedX(computeInjectedValueFunction(beacon->getSpeedX(), previousSpeedX,
-                [this, acceleration](double dt) { return previousSpeedX + dt * acceleration; }));
-        beacon->setSpeed(computeInjectedValueFunction(beacon->getSpeed(), previousSpeed,
-                [this, acceleration](double dt) { return previousSpeed + dt * acceleration; }));
+        beacon->setPositionX(computeInjectedValueFunction(beacon->getPositionX(), previousPositionX, [this, acceleration](double dt) { return previousPositionX + dt * previousSpeed + 0.5 * dt * dt * acceleration; }));
+        beacon->setSpeedX(computeInjectedValueFunction(beacon->getSpeedX(), previousSpeedX, [this, acceleration](double dt) { return previousSpeedX + dt * acceleration; }));
+        beacon->setSpeed(computeInjectedValueFunction(beacon->getSpeed(), previousSpeed, [this, acceleration](double dt) { return previousSpeed + dt * acceleration; }));
         previousTime = simTime().dbl();
     }
 

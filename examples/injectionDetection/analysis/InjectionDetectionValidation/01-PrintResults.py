@@ -75,6 +75,8 @@ class ExtractValidationResults:
         print("Crashes:                    ", self.crashed.sum(), "out of", _runs, "({:.2f}%)".format(100 * self.crashed.sum()/_runs))
 
         if verbose:
+            print("\n",_leader_detected,"\n")
+            print("\n",_predecessor_detected,"\n")
             if len(_leader_detected > 0):
                 print()
                 print("Leader attack detected type:")
@@ -116,6 +118,7 @@ class ExtractValidationResults:
 
         _leader_detection = data[_filter_leader_detection].pivot("run", columns="name", values="value")
         _predecessor_detection = data[_filter_predecessor_detection].pivot("run", columns="name", values="value")
+       # who_leader_detect  = data[_filter_leader_detection].pivot("run", columns="name", values="value")
 
         return _leader_detection, _predecessor_detection
 

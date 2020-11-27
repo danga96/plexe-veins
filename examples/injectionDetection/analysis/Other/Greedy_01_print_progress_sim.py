@@ -224,6 +224,8 @@ class InjectionDetectionAnalyzer:
             "thresholds": 3 * self._kf_position_std * self.detection_parameters["distanceV2XKFThresholdFactor"],
         }
         _lines.append(self._plot_detection_line(ax, "C2", "V2X-KF distance" if legend else None, **_data))
+        print("_v2x_distance:",_v2x_distance - _kf_distance)
+        print("NEW_AVG:",InjectionDetectionAnalyzer.__running_avg(_v2x_distance - _kf_distance, _window))
         print("V2X-KF distance",_data["thresholds"][-1])
         """         
         for i in range(len(_data["sampling_times"])):
@@ -371,6 +373,7 @@ class InjectionDetectionAnalyzer:
             #_avg[_i] = np.mean(array[_i - _win:_i + 1])    #OLD_avg
             #-----NEW_avg
             temp_data = array[_i - _win:_i + 1]
+            
             _avg[_i] = np.average(temp_data, weights=w[-len(temp_data):])
             #_avg[_i] = np.mean(array[_i - _win:_i + 1])
             """
@@ -479,7 +482,7 @@ if __name__ == "__main__":
         print("key ",key," value", value) """
    # base_path = os.path.join(base_path, controller)
     #NoAttack
-    _simulation = 101
+    _simulation = 0
     analyzers = {
         #"NoInjection": InjectionDetectionAnalyzer(base_path, "{}NoInjection.csv".format(scenario), detection_parameters, simulation=_simulation),
         #"PositionInjection": InjectionDetectionAnalyzer(base_path, "{}PositionInjection.csv".format(scenario), detection_parameters, simulation=_simulation),

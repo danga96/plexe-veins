@@ -59,8 +59,8 @@ model = Sequential()
 model.add(Dense(512, input_dim = X_train.shape[1], activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
 
-model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
-model.add(Dropout(0.1))
+#model.add(Dense(256, activation='relu', kernel_initializer='uniform'))
+#model.add(Dropout(0.1))
 
 model.add(Dense(128, activation='relu', kernel_initializer='uniform'))
 model.add(Dropout(0.1))
@@ -80,11 +80,11 @@ model.add(Dense(1, activation='sigmoid', kernel_initializer='uniform'))
 _optimizer = optimizers.Adam(learning_rate=0.001)
 model.compile(loss='binary_crossentropy', optimizer=_optimizer, metrics=['accuracy'])
 print(model.summary())
-history = model.fit(X_train, y_train, epochs=10, batch_size=32)
+history = model.fit(X_train, y_train, epochs=2, batch_size=32)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=1)
 print("Accuracy: %.2f%%" % (scores[1]*100))
-"""
+
 # summarize history for accuracy
 plt.plot(history.history['accuracy'])
 plt.title('model accuracy')
@@ -99,7 +99,7 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
-"""
+
 Y_pred = model.predict(X_test)
 Y_pred_round = [1 * (x[0]>=0.5) for x in Y_pred]
 print(len(Y_pred_round))

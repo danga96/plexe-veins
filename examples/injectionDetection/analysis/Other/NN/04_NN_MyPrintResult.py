@@ -64,11 +64,11 @@ class DataAnalysis:
         for name_value in self.name_values:               
             who_is_fp[name_value] = 0
             who_is_tp[name_value] = 0
-
+        start = 0
         for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
             print("----------------------------------------------------------------------------",simulation, end='\r')
-            if simulation>100:
-                continue
+            #if simulation>100:
+            #    continue
             #print("--------",simulation, end='\r')
             data_attack = grouped_attack.get_group(simulation)
 
@@ -89,9 +89,9 @@ class DataAnalysis:
                 #if name_value != 'RKFspeed':
                 #if name_value != 'KFspeed':
                 #if name_value == 'RKFdistance': 
-                #if name_value == 'Rdistance': 
+                if name_value == 'Rdistance': 
                 #if name_value == 'KFdistance': 
-                #    continue
+                    continue
                 if name_value[0]=='R' and self.w_radar is False: #remove radar Value
                     continue
                 #print("---------------------------------------------",name_value)
@@ -123,6 +123,7 @@ class DataAnalysis:
                 """
                 DF_single_value = data_value[['Time','Start','Detection']]
                 DF_single_value = DF_single_value.assign(Pred = Y_pred_round) 
+                start = DF_single_value['Start'].iloc[0]
                 ##print(Y_pred, "\n\n", X_test[0])
                 ##exit()
                 #print("\nX_TEST",X_test[0],"\n")
@@ -206,6 +207,8 @@ class DataAnalysis:
             #print("fake_detect:", fake_detect, "attack_detect ",attack_detect, " attack_detect_delay", attack_detect_delay)
             #exit()
             
+            DF_detect.loc[DF_detect['Run'] == simulation,'Start']  = start
+            
         print("------------- ",attack," (TOT_SIM: ",_simulations,") -------------")
         #print("ad: ",attack_detect_delay)
         print("DETECTION")
@@ -233,7 +236,7 @@ if __name__ == "__main__":
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}NoInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     #AllAttacks = ["{}CoordinatedInjection.csv".format(scenario)]
     
     analyzer = DataAnalysis(model_path,test_path,AllAttacks[0])

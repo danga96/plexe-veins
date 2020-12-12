@@ -75,8 +75,8 @@ class ExtractValidationResults:
         print("Crashes:                    ", self.crashed.sum(), "out of", _runs, "({:.2f}%)".format(100 * self.crashed.sum()/_runs))
 
         if verbose:
-            print("\n",_leader_detected,"\n")
-            print("\n",_predecessor_detected,"\n")
+            #print("\n",_leader_detected,"\n")
+            #print("\n",_predecessor_detected,"\n")
             if len(_leader_detected > 0):
                 print()
                 print("Leader attack detected type:")

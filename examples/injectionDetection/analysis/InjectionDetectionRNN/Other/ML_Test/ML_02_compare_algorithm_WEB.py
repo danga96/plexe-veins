@@ -10,7 +10,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 # load dataset
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
+csv_path = "../TrendStepWindow/TrendDB/DB.csv"
 attacks = pd.read_csv(csv_path)
 print(attacks.info())
 

@@ -155,7 +155,7 @@ class FindModel:
 
 
 if __name__ == "__main__":
-    train_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/"
+    train_path = "../../RollingDB/"
     scenario = "Random" #Constant
 
     #NoAttack

@@ -166,8 +166,8 @@ class DataAnalysis:
         
 copyreg.pickle(types.MethodType, DataAnalysis.get_stats_attack)  
 if __name__ == "__main__":
-    model_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/Model/"
-    test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/DB_Test/"
+    model_path = "../../RollingDB/Model/"
+    test_path = "../../RollingDB/DB_Test/"
     scenario = "Random" #Constant
 
     #NoAttack

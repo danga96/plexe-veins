@@ -59,7 +59,7 @@ class GenerateModel:
         
         y_train = self.y_train[name_value]
 
-        test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/DB_Test/"
+        test_path = "../../RollingDB/DB_Test/"
         DF_attack = pd.read_csv(test_path+'RandomNoInjection.csv')
         grouped_attack = DF_attack.groupby("Run")
         sim_lists = sorted(DF_attack.Run.unique())
@@ -124,12 +124,12 @@ class GenerateModel:
 
 
 if __name__ == "__main__":
-    train_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/"
+    train_path = "../../RollingDB/"
     scenario = "Random" #Constant
 
     #NoAttack
     AllValues = ["KFdistance.csv",  "Rdistance.csv", "RKFdistance.csv", "RKFspeed.csv", "RV2Xspeed.csv", "V2XKFdistance.csv", "V2XKFspeed.csv",]
-    AllValues = ["KFdistance_bi.csv"]
+    AllValues = ["KFdistance.csv"]
     start_time = time.time()
     #AllAttacks = ["{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
     generator = GenerateModel(train_path, AllValues)

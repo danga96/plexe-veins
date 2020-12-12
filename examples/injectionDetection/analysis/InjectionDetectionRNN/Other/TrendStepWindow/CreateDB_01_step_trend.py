@@ -406,13 +406,13 @@ def _remove_negative(ds):
     return ds[ds > 0]
 
 if __name__ == "__main__":
-    base_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/summary/"#../InjectionDetectionData
+    base_path = "../../../../summary/"
     scenario = "Random" #Constant
     controller = "CACC" #Test
 
     # base_path = os.path.join(base_path, controller)
     DF_train = pd.DataFrame(columns=col_train)
-    export_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/"
+    export_path = "./TrendDB/"
     #NoAttack
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]

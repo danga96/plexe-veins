@@ -448,7 +448,7 @@ class InjectionDetectionAnalyzer:
 
 if __name__ == "__main__":
 
-    base_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/summary/"#../InjectionDetectionData
+    base_path = "../../../../summary/"
     scenario = "Random" #Constant
     controller = "CACC" #Test
 

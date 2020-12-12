@@ -354,40 +354,6 @@ class InjectionDetectionAnalyzer:
         summary_detect[self.simulation_index][_eq-1] = str(round(_attack_detected_original,2))+"|"+str(round(_best_detect,2))
         return None
 
-    """ 
-    def _get_alpha_test(self, _eq, _i, values, threshold):
-        switcher = {
-            1: abs(values[_i]/(threshold[_i]/self.detection_parameters["distanceKFThresholdFactor"])),
-            2: abs(values[_i]/(threshold[_i]/self.detection_parameters["distanceV2XKFThresholdFactor"])),
-            3: abs(values[_i]/(threshold[_i]/self.detection_parameters["speedV2XKFThresholdFactor"])),
-            4: abs(values[_i]/(threshold[_i]/self.detection_parameters["distanceRadarThresholdFactor"])),
-            5: abs(values[_i]/(threshold[_i]/self.detection_parameters["distanceRadarKFThresholdFactor"])),
-            6: abs(values[_i]/(threshold[_i]/self.detection_parameters["speedRadarV2XThresholdFactor"])),
-            7: abs(values[_i]/(threshold[_i]/self.detection_parameters["speedRadarKFThresholdFactor"])),
-        }
-        return switcher.get(_eq, 0)
-    
-    def _set_th_beta(self, _eq, th_test, threshold):
-        switcher = {
-            1: th_test * (threshold/self.detection_parameters["distanceKFThresholdFactor"]),
-            2: th_test * (threshold/self.detection_parameters["distanceV2XKFThresholdFactor"]),
-        }
-        return switcher.get(_eq, 0)
-      
-    def _set_th(self, _eq, th_test, threshold):
-        th_test = round(th_test,2)
-        arr1 = th_test*threshold
-        arr2 = th_test*3 * self._kf_position_std
-        if  _eq==2 and (np.array_equal(arr1,arr2) is False) :
-            print(np.setdiff1d(arr1, arr2))
-            print("stop",th_test)
-            exit()
-        switcher = {
-            1: th_test * self._expected_distance,
-            2: th_test * 3 * self._kf_position_std,
-        }
-        return switcher.get(_eq, 0)             
-    """
 
     def _set_alpha_parameters(self):
         self.alpha_parameters = np.zeros(len(self.detection_parameters))
@@ -500,6 +466,7 @@ class CollectDataForAttack:
     def __parse_ndarray(value):
         return np.fromstring(value, sep=' ') if value else None
 
+#never called
 def diff_percentage_csv(columns):
     summary_alpha_percentage = []
     row = np.asarray(best_alpha_sims).shape[0]
@@ -515,7 +482,7 @@ def diff_percentage_csv(columns):
 
 if __name__ == "__main__":
 
-    base_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/summary/"#../InjectionDetectionData
+    base_path = "../../../../summary/"
     scenario = "Random" #Constant
     controller = "CACC" #Test
 
@@ -609,11 +576,7 @@ if __name__ == "__main__":
         tab.auto_set_column_width([0,1,2,3,4,5,6,7])
         #tab.scale(1,1.5)
         tab.set_fontsize(11)
-        """ EXPORT TO CSV
-        diff_percentage_csv(columns)
-        test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/test.csv"
-        np.savetxt(test_path, best_alpha_sims, header=','.join(columns), fmt=",".join(["%f"] * (np.asarray(best_alpha_sims).shape[1])))
-        """
+
         ax1[1].axis('off')
         columns += ["Start|Pdetect"]
         rows.remove("Original")

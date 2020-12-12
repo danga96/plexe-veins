@@ -16,7 +16,7 @@ from heatmap import heatmap, corrplot
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
+csv_path = "../TrendStepWindow/TrendDB/DB.csv"
 attacks = pd.read_csv(csv_path)
 
 print(attacks.info())

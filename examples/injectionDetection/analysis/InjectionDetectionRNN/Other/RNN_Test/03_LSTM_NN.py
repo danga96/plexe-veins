@@ -29,7 +29,7 @@ tf.random.set_seed(2)
 np.random.seed(7)
 
 
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/KFdistance_bi.csv"
+csv_path = "../../RollingDB/Rdistance.csv"
 attacks = pd.read_csv(csv_path)
 #X = attacks.drop(attacks.columns[[3,4,5,6,-1]], axis=1).values
 X = attacks.drop(['Detection'], axis=1).values

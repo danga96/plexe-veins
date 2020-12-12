@@ -71,7 +71,7 @@ def create_model(dense_layer=0, dropout_rate=0.0, activation = 'relu', optimizer
 # fix random seed for reproducibility
 np.random.seed(7)
 # load dataset
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/KFdistance.csv"
+csv_path = "../../RollingDB/KFdistance.csv"
 attacks = pd.read_csv(csv_path)
 # split into input (X) and output (Y) variables
 X = attacks.drop(['Detection'], axis=1).values

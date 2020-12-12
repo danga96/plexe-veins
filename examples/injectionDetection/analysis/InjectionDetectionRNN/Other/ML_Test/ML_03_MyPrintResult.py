@@ -149,8 +149,8 @@ class DataAnalysis:
         
 
 if __name__ == "__main__":
-    train_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/DB.csv"
-    test_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Trend/"
+    train_path = "../TrendStepWindow/TrendDB/DB.csv"
+    test_path = "../TrendStepWindow/TrendDB/Trend/"
     scenario = "Random" #Constant
     w_radar = False
     #NoAttack

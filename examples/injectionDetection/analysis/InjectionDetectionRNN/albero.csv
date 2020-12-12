@@ -1,0 +1,53 @@
+NOME FILE,Spiegazione
+.,
+├── 03d_LSTM_generate_model.py,genera i modelli ricorrenti
+├── 04_NN_MyPrintResult.py,visualizza i risultati considerando le simulazioni di test
+├── albero.csv,
+├── albero.txt,
+├── BoxPlot_distance_allSim.py,genera il box-plot delle distanze minime considerando le intere simulazioni
+├── BoxPlot_time_detection.py,genera il box-plot del tempo di detection
+├── CreateDB_02_for_values.py,genera il file .csv partendo da summary e semplificandoli
+├── CreateDB_03_roll_value.py,genera i .csv di train e di test
+├── Other,
+│   ├── Greedy_TH_Static,
+│   │   ├── Greedy_01_print_progress_sim.py,"attraverso il parametro “_simulation” è possibile visualizzare l'andamento dei valori di una singola simulazione, è possibile anche selezionare il tipo di attacco"
+,possono anche essere configurati le soglie per determinare gli istanti in cui l’algoritmo statico esegue la detection
+│   │   ├── Greedy_02_find_best_alpha.py,"script che realizza il “threshold reduction”, nella riga “sim_lists = sorted(test_data.run.unique())[x1:x2]” è possibile stabile da quale (x1) a (x2) simulazione"
+,"considerare per effettuare il training, è consigliato settare come valori di soglia quelli più alti"
+│   │   └── Greedy_03_MyPrintResult.py,"print dei risultati con i valori di soglia aggiornati, presi a mano dallo script precedente"
+,
+│   ├── ML_Test,
+│   │   ├── ML_01_test_supervised.py,script per testare manualmente uno ad uno gli algoritmi di ML – prende i dati da DB.csv generato da CreateDB_01_step_trend.py
+│   │   ├── ML_02_compare_algorithm_WEB.py,script preso dal WEB per confrontare diversi algoritmi di ML – prende i dati come il precedente script
+│   │   └── ML_03_MyPrintResult.py,confronta diversi algoritmi di ML usando come train il DB.csv e come test i TrendDB/Trend (.csv di test generati da CreateDB_01_step_trend.py)
+,
+│   ├── RNN_Test,
+│   │   ├── 01b_GridSearch.py,"effettua la grid_search facendo ruotare gli iperparametri, prende in input il DB.csv della step-window (con GridSearchCV)"
+│   │   ├── 01c_GridSearchPool_predict.py,"effettua la grid_serach valore per valore, prendendo i .csv della rolling-window, il tutto in un pool di thread e confrontando le metriche in output"
+│   │   ├── 01d_Accuracy_loss_plot.py,"plotta l’accuracy e la loss di un singolo addestramento, prende in input manuale il .csv della rolling-window"
+│   │   ├── 01_Simple_NN.py,prende un .csv a caso da quelli di rolling-window ed esegue una semplice rete neurale splittando il db all’interno della funzione di splitting di sklearn
+,al termine mostra il grafico dell’andamento della loss e dell’accuracy
+│   │   ├── 02_Conv1D_NN.py,"testa le reti convoluzionali e mostra la matrice di confuzione, prende in input il .csv step-window"
+│   │   ├── 03b_LSTM_GridSearch.py,"effettua la grid_search di una LSTM, prende in input manule un .csv della rolling-window (usa GridSearchCV)"
+│   │   ├── 03c02_LSTM_GridSearchPool_pred_test.py,grid search per ogni valore fissato manualmente della rete GRU/LSTM + DENSE
+│   │   ├── 03c02_LSTM_V2_Final.py,come il precedente ma aggiornato alla versione finale con la normalizzazione corretta
+│   │   ├── 03c_LSTM_GridSearchPool_predict.py,"effettua la grid_search in pool di thread prendendo di volta in volta le metriche, usa in input un .csv manuale di rolling-window"
+│   │   ├── 03e_LSTM_test_single_model.py,"addestra in pool tutti i valori da rolling-window, e li testa direttamente con un .csv di test settato manualmente alla riga #63"
+│   │   ├── 03_LSTM_NN.py,addestra una semplice rete LSTM prendendo in input manuale un .csv rolling-window e splittandolo con lo splitting di sklearn
+│   │   ├── 05_NN_MyPrintResult_speed.py,"come la 04_NN_MyPrintResult ma la esegue in pool, quindi più veloce, ma non genera il .csv per i box-plot"
+│   │   ├── WEB_01_series_to_classification.py,script preso dal WEB per eseguire il reshaping dei dati ripettando una lag-feature di n campioni configurabili
+│   │   ├── WEB_02_LSTM_RNN_imdb.py,primo esempio di rete neurale preso dal WEB
+│   │   └── WEB_03_LSTM_not_fixLenght.py,"script preso dal WEB per vedere se fosse possibile adattare la dimensione del train di volta in volta, utile se si seguiva un altro approccio"
+,
+│   └── TrendStepWindow,
+│       ├── CreateDB_01_step_trend.py,"genere i .csv che seguono l’approccio step window di 1s, non distinguendo i database in base al valore"
+,alla riga “is_train = True if simulation_index <100 else False”  minore di N :vuol dire che i primi N sono di train
+│       └── TrendDB,contiene il .csv di train che rispetta l’approccio step-window di 1s (DB.csv)
+│             └── Trend,contiene i .csv di test per ogni attacco che rispetta l’approccio step-window di 1s
+,
+└── RollingDB,contiene i .csv di train
+    ├── DB_Test,contiene i .csv di test + quello per i box-plot
+    └── Model,contiene i modelli addestrati più i file della normalizzazione
+        └── Grid_LSTM,
+,
+10 directories, 29 files

@@ -28,7 +28,7 @@ import tensorflow as tf
 import time
 import signal
 import multiprocessing
-import psutil
+#import psutil
 
 """
 tf.config.threading.set_inter_op_parallelism_threads(1)
@@ -50,6 +50,7 @@ def get_XYscaler_Train(train_path,name_value):
     global X_train, y_train
     #print("--------------------------------------------",name_value,"-------------------------------------")
     value_data = pd.read_csv(train_path+name_value)
+    #value_data = shuffle(value_data, random_state = 7)
     X = value_data.drop(['Detection'], axis=1).values
     Y = value_data["Detection"].values
     X_train = X
@@ -57,9 +58,12 @@ def get_XYscaler_Train(train_path,name_value):
     name_value = name_value[:-4]
 
     scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
+    X_one_column = X_train.reshape([-1,1])
+    result_one_column = scaler.fit_transform(X_one_column)
+    X_train = (X_train - scaler.mean_)/(scaler.var_**0.5)
+    
 
-    X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
+    X_train = X_train.reshape(X_train.shape[0],10,1)
     return scaler
 
 def init_worker():
@@ -120,38 +124,32 @@ def train_model(conf):
     
     #exit()
     #print("shape_X",X_train.shape,"shape_Y",y_train.shape)
-
-    first_layer_size_LSTM= 16 if lstm_layer==0 else lstm_layer[0]
-    last_layer_size_LSTM = 16 if lstm_layer==0 else lstm_layer[-1]
     model = Sequential()
-    #if lstm_layer == 0:    
-    model.add(GRU(first_layer_size_LSTM, input_shape=(10,1), kernel_initializer=init_mode, activation=activation, return_sequences=True if len(lstm_layer)>1 else False))
+
+	#-----------------------------------RETE NN------------------------------------------
+    first_layer_size_LSTM= 16 if lstm_layer==0 else lstm_layer[0]
+    second_layer_size_LSTM= 16 if lstm_layer==0 else lstm_layer[1]
+
+    model.add(GRU(first_layer_size_LSTM, input_shape=(10,1), kernel_initializer=init_mode, activation=activation,return_sequences=False))
     model.add(Dropout(dropout_rate))
-
-    #print("FISR:",first_layer_size_LSTM," LASST:",last_layer_size_LSTM)
-
-    for layer_size in lstm_layer[1:-1]:
-        #print("IIIIIIIIIIIIINNNNNNNNNNNNNNNNN           FFFFFFFFFFFOOOOOOOOOOOORRRRRRRRRRR")
-        model.add(GRU(layer_size, kernel_initializer=init_mode, activation= activation, return_sequences=True))
+    #model.add(GRU(second_layer_size_LSTM, kernel_initializer=init_mode, activation=activation,return_sequences=False))
+    #model.add(Dropout(dropout_rate))
+    for layer_size in lstm_layer[1:]:
+        model.add(Dense(layer_size, kernel_initializer=init_mode, activation= activation))
         model.add(Dropout(dropout_rate))
-
-    if len(lstm_layer) >= 2 :
-        model.add(GRU(last_layer_size_LSTM, kernel_initializer=init_mode, activation= activation))
-        model.add(Dropout(dropout_rate))
-
-
-    model.add(Dense(128, activation=activation, kernel_initializer=init_mode))    
-    model.add(Dense(64, activation=activation,  kernel_initializer=init_mode))
-
-
+	#  model.add(Dense(neurons, input_dim=7, activation='relu'))
+	#  model.add(Dropout(dropout_rate))
     model.add(Dense(1, kernel_initializer=init_mode, activation='sigmoid'))
+	#--------------------------END---------RETE NN------------------------------------------
+	
+	
     _optimizer = _get_optimizer(optimizer, learn_rate)
     # Compile model
     #os.system("taskset -p -c "+str(proc_assigned)+" %d" % os.getpid())
     model.compile(loss='binary_crossentropy', optimizer=_optimizer, metrics=['accuracy'])
     #print(model.summary())
     
-    history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+    history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=0)
     
     # Final evaluation of the model
     #score = model.evaluate(X_test, y_test, verbose=0)
@@ -168,6 +166,7 @@ def train_model(conf):
     return scores
 
 def test(test_path,grid_path,scenario,AllAttacks,scaler,name_value):
+    os.system("taskset -p -c 0-3 %d" % os.getpid())
     #----------------------------------------------------TEST----------------------------------------------------------------
     
     for filename in glob.glob(os.path.join(grid_path, '*.h5')):
@@ -190,7 +189,7 @@ def test(test_path,grid_path,scenario,AllAttacks,scaler,name_value):
             #print(sim_lists)
 
             for simulation_index, simulation in enumerate(sim_lists):#per ogni simulazione
-                print("----------------------------------------------------------------------------",simulation, end='\r')
+                #print("----------------------------------------------------------------------------",simulation, end='\r')
                 #print("--------",simulation, end='\r')
                 data_attack = grouped_attack.get_group(simulation)
 
@@ -207,28 +206,30 @@ def test(test_path,grid_path,scenario,AllAttacks,scaler,name_value):
                 X_test = data_value.drop(['Run','Time','Start','Value','Detection'], axis=1).values
                 Y_test = data_value['Detection'].values
 
-                X_test = scaler.transform(X_test)
-                X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
+                #X_test = scaler.transform(X_test)
+                X_test = (X_test - scaler.mean_)/(scaler.var_**0.5)
+                X_test = X_test.reshape((X_test.shape[0],10,1))
                 Y_pred = model.predict(X_test)
-                Y_pred_round = [1 * (x[0]>=0.80) for x in Y_pred]
+                Y_pred_round = [1 * (x[0]>=0.95) for x in Y_pred]
 
                 DF_single_value = data_value[['Time','Start','Detection']]
                 DF_single_value = DF_single_value.assign(Pred = Y_pred_round) 
                 
                 early_detect = np.where(DF_single_value['Pred']>DF_single_value['Detection'])[0]
+                early_detect = early_detect[early_detect>100]
 
                 if len(early_detect)>0 and DF_single_value.iloc[early_detect[0]]['Time'] < DF_single_value.iloc[early_detect[0]]['Start']:
                     
                     if DF_single_value.iloc[early_detect[0]]['Time'] < 10:
                         soon_detect += 1
-
-                    flag_fake_detect = True
+                    else:
+                        flag_fake_detect = True
                     
                 
 
                 detection = np.where((DF_single_value['Pred'].astype(int)&DF_single_value['Detection'].astype(int))==1)[0]
                 if len(early_detect)>0:
-                    detection = early_detect #se sono qui => c'è stata una predizione di un attacco, successivo a Start
+                    detection = early_detect #se sono qui - c'e stata una predizione di un attacco, successivo a Start
 
                 #print(detection)
                 if len(detection)>0:
@@ -263,8 +264,8 @@ def main():
     grid_path = '../../RollingDB/Model/Grid_LSTM'
     scenario = "Random" #Constant
     #AllAttacks = ["{}NoInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
-    AllAttacks = ["{}NoInjection.csv".format(scenario),"{}AccelerationInjection.csv".format(scenario),"{}CoordinatedInjection.csv".format(scenario)]
-    name_value = "Rdistance.csv"
+    AllAttacks = ["{}NoInjection.csv".format(scenario)]
+    name_value = "KFspeed.csv"
     
     files = glob.glob('../../RollingDB/Model/Grid_LSTM/*')
     for f in files:
@@ -277,33 +278,23 @@ def main():
 
     #########################(START) test one_by_one###########################################
     #dense_size_candidates = ['256,128,64', '32', '512,256,128,64', '256,128,128,64']
-    lstm_size_candidates = ['128','50,20']
-    epochs = [1]
+	
+    lstm_size_candidates = ['64,32,32','128,128,256,128,64,32']
+    epochs = [40,50] 
     batch_size = [32]    
-    # Use scikit-learn to grid search 
-    activation =  ['relu','tanh']
-    learn_rate = [0.001]
-    dropout_rate = [0.0,0.4]
-    init = ['glorot_uniform','uniform']
-    optimizer = ['Adam']
-
-    lstm_size_candidates = ['128']
-    epochs = [2]
-    batch_size = [16,32]    
     # Use scikit-learn to grid search 
     activation =  ['relu']
     learn_rate = [0.001]
-    dropout_rate = [0.0,0.2]
-    init = ['glorot_uniform']
+    dropout_rate = [0.2,0.4]
+    init = ['uniform']
     optimizer = ['Adam']
-
     #########################(END) test one_by_one#############################################
     
     configurations = np.array(np.meshgrid(lstm_size_candidates,epochs,batch_size,activation,learn_rate,dropout_rate,init,optimizer)).T.reshape(-1,8)
     print("CONFIGURATIONS: ",configurations,"\n",configurations.shape)
     time.sleep(2)
 
-    num_workers = 1
+    num_workers = 16
 
     pool = multiprocessing.Pool(num_workers)
     scores = pool.map(train_model, configurations)
@@ -320,50 +311,6 @@ if __name__ == "__main__":
   
 
     main()
-    """
-    ####################################################################
-    #configurations = [ [[256,128,64],0.2], [[100,50],0.5] ]
-    lstm_size_candidates = ['256,128,64', '32', '512,256,128,64', '256,128,128,64']
-    epochs = [100]
-    batch_size = [16,32,64,512]   
-    # Use scikit-learn to grid search 
-    #activation =  ['relu', 'tanh', 'sigmoid', 'hard_sigmoid', 'linear', 'softmax', 'softplus', 'softsign']
-    activation =  ['relu', 'tanh', 'sigmoid', 'softsign']
-    #learn_rate = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
-    learn_rate = [0.0001, 0.001, 0.01]
-    #dropout_rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-    dropout_rate = [0.0, 0.1, 0.2, 0.5, 0.7, 0.8]
-    #dropout_rate = [0.2,0.0]
-    #init = ['uniform', 'lecun_uniform', 'normal', 'zero', 'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform']
-    init = ['uniform', 'normal', 'glorot_normal', 'glorot_uniform', 'he_normal', 'he_uniform']
-    #optimizer = [ 'SGD', 'RMSprop', 'Adagrad', 'Adadelta', 'Adam', 'Adamax', 'Nadam']
-    optimizer = [ 'SGD', 'Adam', 'Adamax']
-    """
-    
-
-   
-    """
-    pool = multiprocessing.Pool(num_workers)
-
-    scores = pool.imap(generator.train_model, params)
-    #w = scores.get()
-    pool.close()
-    pool.join()
-    """
-    """
-    procs = []
-
-    for i in range(len(configurations)):
-        p = multiprocessing.Process(target=generator.train_model, args=configurations[i],)
-        procs.append(p)
-        p.start()
-
-    for p in procs:
-        p.join()
-
-    print("---------END-----------------")
-    """
-    #########################FIND BEST CONFIGURATIONS#############################################
-   
+       
     
     exit()  

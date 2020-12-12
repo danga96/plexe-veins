@@ -24,7 +24,7 @@ if __name__ == "__main__":
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]
     start_time = time.time()
-    AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}CoordinatedInjection.csv".format(scenario)]
+    #AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}CoordinatedInjection.csv".format(scenario)]
 
     DF_detect = pd.read_csv(test_path+'time_detect.csv')
     

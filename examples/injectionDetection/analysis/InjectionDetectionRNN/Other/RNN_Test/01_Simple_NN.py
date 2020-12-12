@@ -1,5 +1,6 @@
 import os
 import sys
+# Not show error message from tensorflow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 import numpy as np
@@ -26,7 +27,7 @@ tf.random.set_seed(2)
 np.random.seed(7)
 #os.system("taskset -p -c 0 %d" % os.getpid())
 
-csv_path = "/home/tesi/src/plexe-veins/examples/injectionDetection/analysis/Other/Rolling/KFdistance.csv"
+csv_path = "../../RollingDB/KFdistance.csv"
 attacks = pd.read_csv(csv_path)
 #X = attacks.drop(attacks.columns[[3,4,5,6,-1]], axis=1).values
 #KF distance,V2X-KF distance,V2X-KF speed,Radar distance,Radar-KF distance,Radar-V2X speed,Radar-KF speed,Detection

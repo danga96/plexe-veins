@@ -186,7 +186,7 @@ class DataTuning:
 
 if __name__ == "__main__":
     DB_values_path = "./DB_values.csv"
-    export_path = "./Rolling/"
+    export_path = "./RollingDB/"
     scenario = "Random" #Constant
     controller = "CACC" #Test
     start_time = time.time()

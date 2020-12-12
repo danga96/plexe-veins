@@ -136,7 +136,8 @@ void BeaconAnalyzerML::update(const std::shared_ptr<Plexe::VEHICLE_DATA>& predDa
         // Radar Distance
         distanceRadarAvg->addValue(radarReading->distance - expectedDistance);
         //distanceRadarDetector->update(radarReading->distance - expectedDistance, expectedDistance);
-        distanceRadarDetectorML->update(distanceRadarAvg->getBuffer(),simTime().dbl());
+        
+        ///distanceRadarDetectorML->update(distanceRadarAvg->getBuffer(),simTime().dbl());
         
         // Radar Distance - KF Distance
         distanceRadarKFAvg->addValue(radarReading->distance - kfDistance + predData->length);

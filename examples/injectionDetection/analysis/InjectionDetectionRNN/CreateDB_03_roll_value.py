@@ -59,7 +59,6 @@ class DataTuning:
             print("----------------DF TO EXPORT-----------------",name_value)
             self.DB_values_train[name_value].to_csv(export_path+name_value+'.csv',index=False, header=True)
             #print(self.DB_values_train[name_value],"\n\n\n")
-       
     @staticmethod
     def __parse_ndarray(value):
         value_temp = value.replace('[','').replace(']','')
@@ -80,6 +79,7 @@ class DataTuning:
             is_train = True if simulation_index < train_simulation else False#minore di N :vuol dire che i primi N sono di train
             self.split_and_tuning(is_train)
 
+
         return None
 
     def split_and_tuning(self, is_train):
@@ -87,7 +87,6 @@ class DataTuning:
         global th_attack
         self.attack_start = self.simulation_data['start'].iloc[0]
         #print("SIMULATION\n",self.simulation_data)
-
         sampling_times = self.simulation_data.loc[self.simulation_data.name_value == 'V2XKFspeed','time'].values[0]
         #print(sampling_times)
         
@@ -100,11 +99,8 @@ class DataTuning:
             #print("Name_value",name_value," DATA: ", data, " MAX:", np.abs(data)[100:].max(), "mean: ", np.abs(data[100]), "sub: ",np.abs(data)[100:].max() - np.abs(data[100]))
             if name_value == 'V2XKFspeed' :
                 th_attack = 0.31
-				
-            if name_value == 'KFspeed':
-                th_attack = 1.4
-            
-            if name_value != 'V2XKFspeed' and name_value != 'KFspeed':
+				          
+            if name_value != 'V2XKFspeed':
                 th_attack = 1.4
             
             if (np.abs(data)[100:].max() - np.abs(data[100])) < (th_attack):#prende il massimo dal decimo secondo e lo confronta con il decimo stesso
@@ -113,8 +109,7 @@ class DataTuning:
             data_supervised = self.series_to_supervised(data.reshape(len(data),1),n_in=window-1)
             
             DF_temp_train = DF_temp_train.append(data_supervised, ignore_index = True)
-            target_col = self._set_target_col(sampling_times,window)
-            
+            target_col = self._set_target_col(sampling_times,window,name_value)
             DF_temp_train[DF_temp_train.columns[-1]] = target_col
             if is_train is False:
                 DF_temp_test = DF_temp_test.append(DF_temp_train, ignore_index = True)
@@ -165,17 +160,22 @@ class DataTuning:
         
         return agg
 
-    def _set_target_col(self,sampling_times,window):
-        
+    def _set_target_col(self,sampling_times,window,name_value):        
+
         attack_start = self.attack_start
         target_array = np.zeros( len(sampling_times)-window+1 )
 
         if attack_start == 0 or self.flag_not_diverge:
             return target_array
-
+		
+        if name_value == 'KFspeed':
+            attack_start = attack_start + 10
+       
         direct_index = int(attack_start/0.1-10)
+        if direct_index >= len(sampling_times):
+            return target_array
+        
         direct_index -= 1 if sampling_times[direct_index]-attack_start > 0.1 else 0
-
         start = direct_index-window+1
         
         target_array[start:] = 1
@@ -186,7 +186,7 @@ class DataTuning:
 
 if __name__ == "__main__":
     DB_values_path = "./DB_values.csv"
-    export_path = "./RollingDB/"
+    export_path = "./Rolling/"
     scenario = "Random" #Constant
     controller = "CACC" #Test
     start_time = time.time()
@@ -197,4 +197,3 @@ if __name__ == "__main__":
     print("--- %s s ---" % ((time.time() - start_time)))
 
     exit()  
-

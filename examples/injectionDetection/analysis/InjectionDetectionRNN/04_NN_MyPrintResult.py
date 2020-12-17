@@ -89,7 +89,7 @@ class DataAnalysis:
                 #if name_value != 'RKFspeed':
                 #if name_value != 'KFspeed':
                 #if name_value == 'RKFdistance': 
-                if name_value == 'KFspeed' or name_value == 'Rdistance' :  
+                if name_value == 'Rdistance' :  
                 #if name_value == 'KFdistance': 
                     continue
                 if name_value[0]=='R' and self.w_radar is False: #remove radar Value

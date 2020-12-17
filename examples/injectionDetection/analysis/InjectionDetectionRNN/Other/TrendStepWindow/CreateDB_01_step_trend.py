@@ -444,7 +444,7 @@ if __name__ == "__main__":
                 DF_test = DF_test.append(stats, ignore_index = True)
 
         print("----------------DF TO EXPORT-----------------\n",DF_test)
-        DF_test.to_csv(export_path+'/Trend/'+attack,index=False, header=True)
+        DF_test.to_csv(export_path+'Trend/'+attack,index=False, header=True)
 
     
     print("----------------DF TO EXPORT-----------------\n",DF_train)

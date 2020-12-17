@@ -19,7 +19,7 @@ if __name__ == "__main__":
     controller = "CACC" #Test
 
     # base_path = os.path.join(base_path, controller)
-    test_path = "/RollingDB/DB_Test/"
+    test_path = "./RollingDB/DB_Test/"
     #NoAttack
     AllAttacks = ["{}NoInjection.csv".format(scenario),  "{}PositionInjection.csv".format(scenario), "{}SpeedInjection.csv".format(scenario),
                    "{}AccelerationInjection.csv".format(scenario), "{}AllInjection.csv".format(scenario), "{}CoordinatedInjection.csv".format(scenario)]

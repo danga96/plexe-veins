@@ -1,7 +1,8 @@
 import os
 # Not show error message from tensorflow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+#disable GPU 
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import numpy as np
 import pandas as pd
 import joblib
@@ -85,23 +86,23 @@ class GenerateModel:
         
         inputs = Input(shape=(10,1))
         L1r = GRU(128, activation='relu', return_sequences=True, kernel_initializer='uniform')(inputs)
-        L1rd = Dropout(0.4)(L1r)
+        L1rd = Dropout(0.2)(L1r)
         L2r = GRU(128, activation='relu', return_sequences=False, kernel_initializer='uniform')(L1rd)
-        L2rd = Dropout(0.4)(L2r)
+        L2rd = Dropout(0.2)(L2r)
         Fl = Flatten()(L2rd)
         L1 = Dense(256, activation='relu', kernel_initializer='uniform')(Fl)
-        L1d = Dropout(0.4)(L1)
+        L1d = Dropout(0.2)(L1)
         L2 = Dense(128, activation='relu', kernel_initializer='uniform')(L1d)
-        L2d = Dropout(0.4)(L2)
+        L2d = Dropout(0.2)(L2)
         L3 = Dense(64, activation='relu', kernel_initializer='uniform')(L2d)
-        L3d = Dropout(0.4)(L3)
+        L3d = Dropout(0.2)(L3)
         L4 = Dense(32, activation='relu', kernel_initializer='uniform')(L3d)
-        L4d = Dropout(0.4)(L4)
+        L4d = Dropout(0.2)(L4)
         predictions = Dense(1, activation='sigmoid', kernel_initializer='uniform')(L4d)
         model = Model(inputs=inputs, outputs=predictions)
         model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        es = EarlyStopping(monitor='loss', mode='min', verbose=0, patience=39)
-        model.fit(X_train,y_train, epochs=40, batch_size=32, verbose=1, callbacks=[es])
+        es = EarlyStopping(monitor='loss', mode='min', verbose=0, patience=30)
+        model.fit(X_train,y_train, epochs=50, batch_size=32, verbose=1, callbacks=[es])
 
         joblib.dump(scaler,"./RollingDB/Model/scaler_"+name_value[:-4]+".bin",compress=True)
         model.save("./RollingDB/Model/model_"+name_value[:-4]+".h5", include_optimizer=False)

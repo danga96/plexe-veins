@@ -330,9 +330,9 @@ if __name__ == "__main__":
 
             min_distance = analyzer.get_distance_feature(attack,time_detect)
 
-            if min_distance < 6.5 :
-                n = random.uniform(6.6,9)
-                min_distance = np.round(n,2)
+            #if min_distance < 6.5 :
+            #    n = random.uniform(6.6,9)
+            #    min_distance = np.round(n,2)
                 
             #max_vector.append(max_distance)
             min_vector.append(min_distance)
